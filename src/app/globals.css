@@ -1,0 +1,193 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-terminal-green: #00ff41;
+  --color-terminal-dim: #008f11;
+  --color-terminal-bg: #0a0a0a;
+  --color-terminal-dark: #050505;
+  --color-terminal-border: #1a3a1a;
+  --color-terminal-glow: rgba(0, 255, 65, 0.15);
+  --color-terminal-amber: #ffb000;
+  --color-terminal-red: #ff0040;
+  --color-terminal-cyan: #00f0ff;
+
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
+
+  --animate-scanline: scanline 8s linear infinite;
+  --animate-flicker: flicker 0.15s infinite;
+  --animate-blink: blink 1s step-end infinite;
+  --animate-glitch: glitch 0.3s ease;
+  --animate-data-load: data-load 0.5s ease-out;
+  --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
+  --animate-typing: typing 3.5s steps(40, end);
+
+  @keyframes scanline {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+
+  @keyframes flicker {
+    0% { opacity: 0.97; }
+    5% { opacity: 0.95; }
+    10% { opacity: 0.97; }
+    15% { opacity: 0.94; }
+    20% { opacity: 0.98; }
+    50% { opacity: 0.96; }
+    80% { opacity: 0.98; }
+    90% { opacity: 0.95; }
+    100% { opacity: 0.97; }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  @keyframes glitch {
+    0% { transform: translate(0); filter: hue-rotate(0deg); }
+    10% { transform: translate(-2px, 2px); filter: hue-rotate(90deg); }
+    20% { transform: translate(2px, -2px); filter: hue-rotate(180deg); }
+    30% { transform: translate(-1px, -1px); filter: hue-rotate(270deg); }
+    40% { transform: translate(1px, 1px); filter: hue-rotate(360deg); }
+    50% { transform: translate(-2px, 0); }
+    60% { transform: translate(0, 2px); }
+    70% { transform: translate(2px, -1px); }
+    80% { transform: translate(-1px, 2px); }
+    90% { transform: translate(1px, -2px); }
+    100% { transform: translate(0); filter: hue-rotate(0deg); }
+  }
+
+  @keyframes data-load {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 65, 0.3), 0 0 10px rgba(0, 255, 65, 0.1); }
+    50% { box-shadow: 0 0 15px rgba(0, 255, 65, 0.5), 0 0 30px rgba(0, 255, 65, 0.2); }
+  }
+
+  @keyframes typing {
+    from { width: 0; }
+    to { width: 100%; }
+  }
+}
+
+/* ========== BASE STYLES ========== */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #0a0a0a;
+  color: #e0e0e0;
+  font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* CRT Scanline Overlay */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 200%;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 1px,
+    rgba(0, 0, 0, 0.08) 1px,
+    rgba(0, 0, 0, 0.08) 2px
+  );
+  animation: scanline 8s linear infinite;
+}
+
+/* Subtle flicker */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9998;
+  animation: flicker 0.15s infinite;
+  background: transparent;
+}
+
+/* ========== CUSTOM SCROLLBAR ========== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #008f11;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00ff41;
+}
+
+/* ========== GLITCH HOVER EFFECT ========== */
+.glitch-hover:hover {
+  animation: glitch 0.3s ease;
+  text-shadow:
+    2px 0 #ff0040,
+    -2px 0 #00f0ff;
+}
+
+.glitch-hover:active {
+  filter: invert(1);
+  transition: filter 0.05s;
+}
+
+/* ========== TEXT GLOW ========== */
+.text-glow {
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.7), 0 0 20px rgba(0, 255, 65, 0.4), 0 0 40px rgba(0, 255, 65, 0.2);
+}
+
+.text-glow-amber {
+  text-shadow: 0 0 10px rgba(255, 176, 0, 0.7), 0 0 20px rgba(255, 176, 0, 0.4);
+}
+
+/* ========== TERMINAL BORDER ========== */
+.terminal-border {
+  border: 1px solid #1a3a1a;
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.1), inset 0 0 30px rgba(0, 0, 0, 0.5);
+}
+
+.terminal-border:hover {
+  border-color: #008f11;
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.2), inset 0 0 30px rgba(0, 0, 0, 0.5);
+}
+
+/* ========== SELECTION ========== */
+::selection {
+  background: #00ff41;
+  color: #0a0a0a;
+}
+
+/* ========== TERMINAL INPUT ========== */
+input, textarea {
+  caret-color: #00ff41;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  border-color: #00ff41 !important;
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+}

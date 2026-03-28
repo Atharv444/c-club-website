@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface EventData {
@@ -103,29 +103,149 @@ const cardVariants = {
 };
 
 function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    OPEN: "bg-terminal-green/20 text-terminal-green border-terminal-green/40",
-    SCHEDULED: "bg-terminal-amber/20 text-terminal-amber border-terminal-amber/40",
-    UPCOMING: "bg-terminal-cyan/20 text-terminal-cyan border-terminal-cyan/40",
-    PLANNING: "bg-terminal-dim/20 text-terminal-dim border-terminal-dim/40",
-  };
-
   return (
     <span
-      className={`text-[10px] px-2 py-0.5 rounded border ${
-        colors[status] || colors.PLANNING
-      }`}
+      className="text-[10px] px-2 py-0.5 rounded border bg-[#00ff41]/10 text-[#00ff41] border-[#00ff41]/50 drop-shadow-[0_0_5px_rgba(0,255,65,0.5)] tracking-tighter"
     >
       {status}
     </span>
   );
 }
 
-export default function EventGrid() {
-  const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
+function ScrambledText({ text, isScrambling }: { text: string; isScrambling: boolean }) {
+  const [displayText, setDisplayText] = useState(text);
+
+  useEffect(() => {
+    if (!isScrambling) {
+      setDisplayText(text);
+      return;
+    }
+
+    const chars = "!@#$%^&*()_+-=[]{}|;:,.<>/?`~0123456789█▓";
+    const duration = 2000;
+    const flickerRate = 70;
+    const maxIterations = duration / flickerRate;
+    let iteration = 0;
+
+    const interval = setInterval(() => {
+      setDisplayText(
+        text.split('').map((c, index) => {
+          if (c === ' ') return ' ';
+          
+          // Gradually reveal from left to right
+          // threshold goes from 0 linearly over maxIterations
+          const threshold = (iteration / maxIterations) * text.length;
+          
+          if (index < threshold) {
+            return c;
+          }
+          
+          return chars[Math.floor(Math.random() * chars.length)];
+        }).join('')
+      );
+      
+      iteration++;
+      
+      if (iteration > maxIterations) {
+        clearInterval(interval);
+        setDisplayText(text);
+      }
+    }, flickerRate);
+
+    return () => clearInterval(interval);
+  }, [text, isScrambling]);
+
+  return <>{displayText}</>;
+}
+
+function EventCard({ event, onClick }: { event: EventData; onClick: () => void }) {
+  const [displayAddress, setDisplayAddress] = useState(event.address);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const startCycling = () => {
+    let iteration = 0;
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      setDisplayAddress((prev) => {
+        const hexChars = "0123456789ABCDEF";
+        const randomChar = hexChars[Math.floor(Math.random() * 16)];
+        const targetIndex = iteration % 4; // 0, 1, 2, 3
+        const currentHex = prev.slice(2);
+        const newHex = currentHex.substring(0, targetIndex) + randomChar + currentHex.substring(targetIndex + 1);
+        iteration++;
+        return "0x" + newHex;
+      });
+    }, 50);
+  };
+
+  const stopCycling = () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    setDisplayAddress(event.address);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, []);
 
   return (
-    <section id="events" className="relative z-10 px-4 md:px-8 py-14 max-w-6xl mx-auto">
+    <motion.div
+      variants={cardVariants}
+      layoutId={event.id}
+      onClick={onClick}
+      onMouseEnter={startCycling}
+      onMouseLeave={stopCycling}
+      className="rounded-lg p-5 bg-black/80 border border-zinc-800 backdrop-blur-sm cursor-pointer hover:border-zinc-500 transition-all group"
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+    >
+      {/* Address header */}
+      <div className="flex items-center justify-between mb-3 relative z-10">
+        <span className="text-[#00ff41] drop-shadow-[0_0_5px_rgba(0,255,65,0.5)] text-xs font-bold font-mono tracking-tighter inline-block z-20 relative">
+          MEM[{displayAddress}]
+        </span>
+        <StatusBadge status={event.status} />
+      </div>
+
+      {/* Title */}
+      <h3 className="text-white font-bold text-base mb-1 group-hover:text-[#00ff41] transition-colors relative z-20">
+        {event.title}
+      </h3>
+
+      {/* Meta */}
+      <div className="flex items-center gap-3 mb-3">
+        <span className="text-[#00ff41] drop-shadow-[0_0_5px_rgba(0,255,65,0.5)] text-xs">{event.date}</span>
+        <span className="text-[#00ff41] drop-shadow-[0_0_5px_rgba(0,255,65,0.5)] text-xs">{event.type}</span>
+      </div>
+
+      {/* Description */}
+      <p className="text-[#a1a1aa] text-sm leading-relaxed">
+        {event.description}
+      </p>
+
+      {/* Expand hint */}
+      <div className="mt-4 text-[#a1a1aa] text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+        [CLICK TO READ_DATA &gt;&gt;]
+      </div>
+    </motion.div>
+  );
+}
+
+export default function EventGrid() {
+  const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
+  const [isGlitching, setIsGlitching] = useState(false);
+
+  const handleEventClick = (event: EventData) => {
+    setSelectedEvent(event);
+    setIsGlitching(true);
+    setTimeout(() => {
+      setIsGlitching(false);
+    }, 2000);
+  };
+
+  return (
+    <section id="events" className="relative z-10 px-4 md:px-8 py-12 max-w-6xl mx-auto crt-text-glow font-mono tracking-tighter">
       {/* Header */}
       <motion.div
         className="mb-10"
@@ -134,10 +254,10 @@ export default function EventGrid() {
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
       >
-        <h2 className="text-terminal-green text-glow text-xl md:text-2xl font-bold mb-2">
+        <h2 className="text-[#00ff41] drop-shadow-[0_0_5px_rgba(0,255,65,0.5)] text-xl md:text-2xl font-bold mb-2">
           $ ls /events/*
         </h2>
-        <p className="text-terminal-dim text-sm">
+        <p className="text-[#a1a1aa] text-sm">
           // Memory blocks loaded — click to expand data
         </p>
       </motion.div>
@@ -151,44 +271,7 @@ export default function EventGrid() {
         viewport={{ once: true, margin: "-50px" }}
       >
         {EVENTS.map((event) => (
-          <motion.div
-            key={event.id}
-            variants={cardVariants}
-            layoutId={event.id}
-            onClick={() => setSelectedEvent(event)}
-            className="terminal-border rounded-lg p-5 bg-terminal-bg/80 backdrop-blur-sm cursor-pointer hover:border-terminal-green/50 transition-all group"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            {/* Address header */}
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-terminal-cyan text-xs font-bold">
-                MEM[{event.address}]
-              </span>
-              <StatusBadge status={event.status} />
-            </div>
-
-            {/* Title */}
-            <h3 className="text-white font-semibold text-base mb-1 group-hover:text-terminal-green transition-colors">
-              {event.title}
-            </h3>
-
-            {/* Meta */}
-            <div className="flex items-center gap-3 mb-3">
-              <span className="text-terminal-dim text-xs">{event.date}</span>
-              <span className="text-terminal-amber text-xs">{event.type}</span>
-            </div>
-
-            {/* Description */}
-            <p className="text-gray-500 text-sm leading-relaxed">
-              {event.description}
-            </p>
-
-            {/* Expand hint */}
-            <div className="mt-4 text-terminal-dim text-xs opacity-0 group-hover:opacity-100 transition-opacity">
-              [CLICK TO READ_DATA &gt;&gt;]
-            </div>
-          </motion.div>
+          <EventCard key={event.id} event={event} onClick={() => handleEventClick(event)} />
         ))}
       </motion.div>
 
@@ -206,42 +289,42 @@ export default function EventGrid() {
             <div className="fixed inset-0 z-[201] flex items-center justify-center p-4">
               <motion.div
                 layoutId={selectedEvent.id}
-                className="terminal-border rounded-lg p-6 md:p-8 bg-terminal-bg max-w-lg w-full max-h-[80vh] overflow-y-auto"
+                className="rounded-lg border border-zinc-800 p-6 md:p-8 bg-black/90 backdrop-blur-sm max-w-lg w-full max-h-[80vh] overflow-y-auto font-mono tracking-tighter"
               >
                 {/* Header */}
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-terminal-cyan text-sm font-bold">
+                  <span className="text-[#00ff41] drop-shadow-[0_0_5px_rgba(0,255,65,0.5)] text-sm font-bold">
                     MEM[{selectedEvent.address}] — DATA DUMP
                   </span>
                   <button
                     onClick={() => setSelectedEvent(null)}
-                    className="text-terminal-dim hover:text-terminal-red text-xs glitch-hover cursor-pointer"
+                    className="text-[#a1a1aa] hover:text-white text-xs glitch-hover cursor-pointer"
                   >
                     [CLOSE]
                   </button>
                 </div>
 
-                <div className="border-b border-terminal-border mb-4" />
+                <div className="border-b border-zinc-800 mb-4" />
 
-                <h3 className="text-terminal-green text-glow text-xl font-bold mb-2">
-                  {selectedEvent.title}
+                <h3 className="text-white text-xl font-bold mb-2">
+                  <ScrambledText text={selectedEvent.title} isScrambling={isGlitching} />
                 </h3>
 
                 <div className="flex items-center gap-3 mb-4">
-                  <span className="text-terminal-dim text-sm">
+                  <span className="text-[#00ff41] drop-shadow-[0_0_5px_rgba(0,255,65,0.5)] text-sm">
                     {selectedEvent.date}
                   </span>
-                  <span className="text-terminal-amber text-sm">
+                  <span className="text-[#00ff41] drop-shadow-[0_0_5px_rgba(0,255,65,0.5)] text-sm">
                     {selectedEvent.type}
                   </span>
                   <StatusBadge status={selectedEvent.status} />
                 </div>
 
-                <p className="text-gray-400 text-sm leading-relaxed mb-4">
-                  {selectedEvent.details}
+                <p className="text-[#a1a1aa] text-sm leading-relaxed mb-4">
+                  <ScrambledText text={selectedEvent.details} isScrambling={isGlitching} />
                 </p>
 
-                <div className="border-t border-terminal-border pt-4 mt-4 text-terminal-dim text-xs">
+                <div className="border-t border-zinc-800 pt-4 mt-4 text-[#a1a1aa] text-xs">
                   &gt; END OF DATA BLOCK — RETURN TO INDEX
                 </div>
               </motion.div>

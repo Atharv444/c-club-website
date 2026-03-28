@@ -34,10 +34,43 @@ export default function RegistrationForm() {
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [segfaultError, setSegfaultError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+
+  const playClickSound = () => {
+    try {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      const ctx = new AudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = "square";
+      osc.frequency.setValueAtTime(150, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.05);
+      
+      gain.gain.setValueAtTime(0.05, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.start();
+      osc.stop(ctx.currentTime + 0.05);
+    } catch (e) {
+      // Ignore if audio context fails
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setSegfaultError(null);
+
+    const email = formData["email"] || "";
+    if (!email.includes("@") || !email.includes(".")) {
+      setSegfaultError("ERROR: Segmentation fault in field [email]. Please re-allocate.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     // Simulate processing
@@ -52,37 +85,42 @@ export default function RegistrationForm() {
   };
 
   return (
-    <section id="register" className="relative z-10 px-4 md:px-8 py-14 max-w-3xl mx-auto">
+    <section id="register" className="relative z-10 px-4 md:px-8 py-12 max-w-4xl mx-auto">
       <motion.div
-        className="terminal-border rounded-lg p-6 md:p-8 bg-terminal-bg/80 backdrop-blur-sm"
+        className="relative overflow-hidden rounded border border-green-500/30 bg-[#000000]"
+        style={{
+          boxShadow:
+            "0 0 15px rgba(0, 255, 65, 0.07), 0 0 30px rgba(0, 255, 65, 0.04), inset 0 0 60px rgba(0, 0, 0, 0.8)",
+        }}
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-100px" }}
         transition={{ duration: 0.6 }}
       >
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-terminal-border">
-          <div className="flex gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-terminal-red" />
-            <div className="w-3 h-3 rounded-full bg-terminal-amber" />
-            <div className="w-3 h-3 rounded-full bg-terminal-green" />
-          </div>
-          <span className="text-terminal-dim text-xs">
-            register.sh — bash
-          </span>
-        </div>
+        {/* CRT Scanline Overlay */}
+        <div
+          className="pointer-events-none absolute inset-0 z-20"
+          style={{
+            background:
+              "repeating-linear-gradient(0deg, transparent 0px, transparent 1px, rgba(0,255,65,0.03) 1px, rgba(0,255,65,0.03) 2px)",
+          }}
+        />
+        <div className="pointer-events-none absolute inset-0 z-20 animate-flicker" />
 
-        <motion.h2
-          className="text-terminal-green text-glow text-xl md:text-2xl font-bold mb-2"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-        >
-          $ ./register --interactive
-        </motion.h2>
-        <p className="text-terminal-dim text-sm mb-8">
-          // Fill in the required fields to register
-        </p>
+        <div className="relative z-10 p-6 md:p-8">
+          <motion.h2
+            className="text-terminal-green text-sm md:text-base font-bold mb-2"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+          >
+            <span className="text-terminal-dim">root@c-club:~$</span>{" "}
+            <span className="text-terminal-green text-glow">./register --interactive</span>
+            <span className="animate-blink ml-1 text-terminal-green">█</span>
+          </motion.h2>
+          <p className="text-terminal-dim text-sm mb-6">
+            // Fill in the required fields to register
+          </p>
 
         {!submitted ? (
           <form ref={formRef} onSubmit={handleSubmit}>
@@ -107,11 +145,26 @@ export default function RegistrationForm() {
                       onChange={(e) =>
                         handleChange(field.name, e.target.value)
                       }
+                      onKeyDown={playClickSound}
                       placeholder={field.placeholder}
-                      required
-                      className="w-full bg-transparent border-b border-terminal-border text-white text-sm py-2 px-1 placeholder-gray-700 focus:border-terminal-green transition-colors"
+                      required={field.name !== "email" || !segfaultError}
+                      className={`w-full bg-transparent border-b text-white text-sm py-2 px-1 transition-colors focus:outline-none ${
+                        field.name === "email" && segfaultError
+                          ? "border-red-500 text-red-500 animate-[flicker_0.1s_infinite] shadow-[0_0_10px_rgba(255,0,0,0.5)] placeholder-red-500/50"
+                          : "border-terminal-border placeholder-gray-700 focus:border-terminal-green"
+                      }`}
                     />
                   </div>
+                  {field.name === "email" && segfaultError && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="text-red-500 text-xs mt-2 font-bold animate-[flicker_0.15s_infinite] text-shadow-[0_0_5px_rgba(255,0,0,0.8)] crt-text-glow"
+                      style={{ textShadow: "0 0 5px rgba(255,0,0,0.8)" }}
+                    >
+                      {segfaultError}
+                    </motion.div>
+                  )}
                 </motion.div>
               ))}
 
@@ -149,7 +202,7 @@ export default function RegistrationForm() {
               Your access request has been logged and is pending approval.
             </p>
             <div className="inline-block terminal-border rounded px-4 py-2 text-xs text-terminal-dim">
-              REF: USR-{Math.random().toString(36).substring(2, 8).toUpperCase()}
+              REF: USR-X7K4M2
               &nbsp;| STATUS: PENDING_REVIEW
             </div>
             <div className="mt-6">
@@ -165,6 +218,7 @@ export default function RegistrationForm() {
             </div>
           </motion.div>
         )}
+        </div>
       </motion.div>
     </section>
   );

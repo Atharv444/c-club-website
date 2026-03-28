@@ -37,87 +37,98 @@ const lineVariants = {
 
 export default function SystemOverview() {
   return (
-    <section id="overview" className="relative z-10 px-4 md:px-8 py-14 max-w-5xl mx-auto">
+    <section id="overview" className="relative z-10 px-4 md:px-8 py-12 max-w-6xl mx-auto crt-text-glow">
       <motion.div
-        className="terminal-border rounded-lg p-6 md:p-8 bg-terminal-bg/80 backdrop-blur-sm"
+        className="relative overflow-hidden rounded border border-green-500/30 bg-[#000000]"
+        style={{
+          boxShadow:
+            "0 0 15px rgba(0, 255, 65, 0.07), 0 0 30px rgba(0, 255, 65, 0.04), inset 0 0 60px rgba(0, 0, 0, 0.8)",
+        }}
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-100px" }}
         transition={{ duration: 0.6 }}
       >
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-terminal-border">
-          <div className="flex gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-terminal-red" />
-            <div className="w-3 h-3 rounded-full bg-terminal-amber" />
-            <div className="w-3 h-3 rounded-full bg-terminal-green" />
-          </div>
-          <span className="text-terminal-dim text-xs">
-            system_overview.sh — bash
-          </span>
-        </div>
+        {/* CRT Scanline Overlay */}
+        <div
+          className="pointer-events-none absolute inset-0 z-20"
+          style={{
+            background:
+              "repeating-linear-gradient(0deg, transparent 0px, transparent 1px, rgba(0,255,65,0.03) 1px, rgba(0,255,65,0.03) 2px)",
+          }}
+        />
 
-        {/* Section title */}
-        <div className="mb-6">
+        {/* Flicker layer */}
+        <div className="pointer-events-none absolute inset-0 z-20 animate-flicker" />
+
+        {/* Content */}
+        <div className="relative z-10 p-6 md:p-8">
+          {/* Command Prompt */}
           <motion.h2
-            className="text-terminal-green text-glow text-xl md:text-2xl font-bold"
+            className="text-terminal-green text-sm md:text-base font-bold mb-6"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            $ cat SYSTEM_OVERVIEW
-            <span className="animate-blink ml-1">█</span>
+            <span className="text-terminal-dim">root@c-club:~$</span>{" "}
+            <span className="text-terminal-green text-glow">
+              cat SYSTEM_OVERVIEW
+            </span>
+            <span className="animate-blink ml-1 text-terminal-green">█</span>
           </motion.h2>
-        </div>
 
-        {/* Content */}
-        <motion.div
-          className="space-y-1"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
-        >
-          {MISSION_LINES.map((line, index) => (
-            <motion.p
-              key={index}
-              variants={lineVariants}
-              className={`text-sm md:text-base leading-relaxed ${
-                line.startsWith(">")
-                  ? "text-terminal-green font-semibold"
-                  : line === ""
-                  ? "h-3"
-                  : "text-gray-400"
-              }`}
-            >
-              {line}
-            </motion.p>
-          ))}
-        </motion.div>
+          {/* Output Lines */}
+          <motion.div
+            className="space-y-1"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+          >
+            {MISSION_LINES.map((line, index) => (
+              <motion.p
+                key={index}
+                variants={lineVariants}
+                className={`text-sm md:text-base leading-relaxed ${
+                  line.startsWith(">")
+                    ? "text-terminal-green font-semibold"
+                    : line === ""
+                    ? "h-3"
+                    : "text-gray-400"
+                }`}
+              >
+                {line}
+              </motion.p>
+            ))}
+          </motion.div>
 
-        {/* Stats bar */}
-        <div className="mt-8 pt-4 border-t border-terminal-border flex flex-wrap gap-6">
-          {[
-            { label: "MEMBERS", value: "50+", color: "text-terminal-green" },
-            { label: "PROJECTS", value: "25+", color: "text-terminal-cyan" },
-            { label: "EVENTS/YR", value: "12", color: "text-terminal-amber" },
-            { label: "UPTIME", value: "99.9%", color: "text-terminal-green" },
-          ].map((stat) => (
-            <motion.div
-              key={stat.label}
-              className="flex flex-col"
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3 }}
-            >
-              <span className={`text-lg md:text-xl font-bold ${stat.color}`}>
-                {stat.value}
-              </span>
-              <span className="text-terminal-dim text-xs">{stat.label}</span>
-            </motion.div>
-          ))}
+          {/* Dashed separator */}
+          <hr className="my-6 border-0 border-t border-dashed border-green-500/30" />
+
+          {/* Stats Row */}
+          <div className="flex flex-wrap gap-8 md:gap-12">
+            {[
+              { label: "MEMBERS", value: "50+", color: "text-terminal-green" },
+              { label: "PROJECTS", value: "25+", color: "text-terminal-cyan" },
+              { label: "EVENTS/YR", value: "12", color: "text-terminal-amber" },
+              { label: "UPTIME", value: "99.9%", color: "text-terminal-green" },
+            ].map((stat) => (
+              <motion.div
+                key={stat.label}
+                className="flex flex-col"
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+              >
+                <span className={`text-lg md:text-xl font-bold ${stat.color}`}>
+                  {stat.value}
+                </span>
+                <span className="text-terminal-dim text-xs">{stat.label}</span>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </motion.div>
     </section>

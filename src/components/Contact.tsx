@@ -1,14 +1,26 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 export default function Contact() {
+  const [lat, setLat] = useState(12.9716);
+  const [lon, setLon] = useState(77.5946);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLat(12.9716 + (Math.random() * 0.0002 - 0.0001));
+      setLon(77.5946 + (Math.random() * 0.0002 - 0.0001));
+    }, 150);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <footer
       id="contact"
       className="relative z-10 mt-4 border-t border-terminal-border"
     >
-      <div className="max-w-5xl mx-auto px-4 md:px-8 py-10">
+      <div className="max-w-6xl mx-auto px-4 md:px-8 py-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -35,10 +47,20 @@ export default function Contact() {
                 </span>
               </div>
 
-              <h2 className="text-white text-xl md:text-2xl font-bold mb-6">
+              <motion.h2 
+                className="text-white text-xl md:text-2xl font-bold mb-6 inline-block p-3 rounded terminal-border bg-terminal-green/5"
+                animate={{
+                  boxShadow: [
+                    "0 0 5px rgba(0, 255, 65, 0.1)",
+                    "0 0 25px rgba(0, 255, 65, 0.4)",
+                    "0 0 5px rgba(0, 255, 65, 0.1)"
+                  ]
+                }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              >
                 SIGNAL: <span className="text-terminal-green">ACTIVE</span>
                 <span className="animate-blink ml-2">█</span>
-              </h2>
+              </motion.h2>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Email */}
@@ -87,7 +109,7 @@ export default function Contact() {
                     University Campus
                     <br />
                     <span className="text-terminal-dim">
-                      LAT: 12.9716 | LON: 77.5946
+                      LAT: {lat.toFixed(4)} | LON: {lon.toFixed(4)}
                     </span>
                   </p>
                 </div>

@@ -38,9 +38,9 @@ export default function Home() {
       >
         <Navbar />
 
-        <main className="pt-16">
+        <main className="pt-14">
           {/* Hero */}
-          <section className="relative z-10 px-4 md:px-8 py-16 md:py-24 max-w-5xl mx-auto text-center">
+          <section className="relative z-10 px-4 md:px-8 py-14 md:py-20 max-w-6xl mx-auto text-center">
             <h1 className="text-terminal-green text-glow text-3xl md:text-5xl lg:text-6xl font-bold mb-4 tracking-tight">
               C://CLUB
             </h1>

@@ -3,12 +3,10 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useTransitionWipe } from "./TransitionContext";
 
 export default function Contact() {
   const [lat, setLat] = useState(12.9716);
   const [lon, setLon] = useState(77.5946);
-  const { navigateWithWipe } = useTransitionWipe();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -108,12 +106,9 @@ export default function Contact() {
                   </span>
                   <div className="text-[#00ff41]/70 font-mono text-sm leading-relaxed flex flex-col flex-1">
                     <span>DSATM CS Department</span>
-                    <button 
-                      onClick={() => navigateWithWipe("/location", false)}
-                      className="w-full text-left text-terminal-dim mt-auto pt-2 block hover:text-[#00ff41] hover:text-glow hover:drop-shadow-[0_0_8px_rgba(0,255,65,0.8)] cursor-pointer transition-all duration-300 bg-transparent border-none appearance-none"
-                    >
+                    <div className="w-full text-left text-terminal-dim mt-auto pt-2 block backdrop-blur-sm relative">
                       LAT: {lat.toFixed(4)} | LON: {lon.toFixed(4)}
-                    </button>
+                    </div>
                   </div>
                 </div>
               </div>

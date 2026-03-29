@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-
+import { TransitionProvider } from "@/components/TransitionContext";
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
@@ -22,7 +22,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${jetbrainsMono.variable} antialiased`} suppressHydrationWarning>
-      <body className="min-h-screen font-mono" suppressHydrationWarning>{children}</body>
+      <body className="min-h-screen font-mono" suppressHydrationWarning>
+        <TransitionProvider>
+          {children}
+        </TransitionProvider>
+      </body>
     </html>
   );
 }

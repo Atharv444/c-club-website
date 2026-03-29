@@ -99,16 +99,13 @@ export default function Contact() {
                 </div>
 
                 {/* Location */}
-                <div>
+                <div className="flex flex-col h-full">
                   <span className="text-terminal-dim text-xs block mb-2">
                     &gt; COORDINATES
                   </span>
-                  <p className="text-gray-500 text-sm leading-relaxed">
-                    Room 404, CS Building
-                    <br />
-                    University Campus
-                    <br />
-                    <span className="text-terminal-dim">
+                  <p className="text-[#00ff41]/70 font-mono text-sm leading-relaxed flex flex-col flex-1">
+                    <span>DSATM CS Department</span>
+                    <span className="text-terminal-dim mt-auto pt-2 block">
                       LAT: {lat.toFixed(4)} | LON: {lon.toFixed(4)}
                     </span>
                   </p>

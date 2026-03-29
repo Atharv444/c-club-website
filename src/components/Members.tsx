@@ -10,7 +10,7 @@ const MEMBERS = [
   "Archana",
   "Arpitha",
   "Likith P",
-  "Vaishnavi Yashokrithi",
+  "Vaishnavi YashoKrithi S",
   "Unais",
 ];
 
@@ -66,35 +66,35 @@ export default function Members() {
               whileHover={{ scale: 1.01 }}
             >
               {/* Default view */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-terminal-dim text-xs w-6 font-mono">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <span className="text-terminal-dim text-xs w-6 font-mono shrink-0">
                     {String(index).padStart(2, "0")}
                   </span>
-                  <span className="text-white text-sm font-medium font-mono group-hover:text-terminal-green transition-colors">
+                  <span className="text-white text-sm font-medium font-mono group-hover:text-terminal-green transition-colors truncate">
                     {name}
                   </span>
                 </div>
-                <span className="text-terminal-dim text-xs group-hover:hidden">
+                <span className="text-terminal-dim text-xs group-hover:hidden whitespace-nowrap shrink-0">
                   [HOVER]
                 </span>
               </div>
 
               {/* Hover reveal */}
-              <div className="absolute inset-0 bg-terminal-bg/95 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="flex items-center gap-3">
-                  <span className="text-terminal-dim text-xs w-6 font-mono">
+              <div className="absolute inset-0 bg-terminal-bg/95 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 gap-2">
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <span className="text-terminal-dim text-xs w-6 font-mono shrink-0">
                     {String(index).padStart(2, "0")}
                   </span>
-                  <span className="text-terminal-green text-sm font-bold font-mono">
+                  <span className="text-terminal-green text-sm font-bold font-mono truncate">
                     {name}
                   </span>
                 </div>
-                <div className="text-right">
-                  <div className="text-terminal-amber text-xs font-bold font-mono">
+                <div className="text-right shrink-0">
+                  <div className="text-terminal-amber text-xs font-bold font-mono whitespace-nowrap">
                     [ ROLE: UNASSIGNED ]
                   </div>
-                  <div className="text-terminal-dim text-[10px] mt-0.5 font-mono">
+                  <div className="text-terminal-dim text-[10px] mt-0.5 font-mono whitespace-nowrap">
                     ACCESS: PENDING
                   </div>
                 </div>

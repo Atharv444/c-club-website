@@ -61,7 +61,7 @@ export default function RegistrationForm() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSegfaultError(null);
 
@@ -71,13 +71,39 @@ export default function RegistrationForm() {
       return;
     }
 
+    const scriptUrl = process.env.NEXT_PUBLIC_GOOGLE_APPS_SCRIPT_URL;
+    if (!scriptUrl) {
+      setSegfaultError("ERROR: Submission endpoint is not configured.");
+      return;
+    }
+
+    if (!formRef.current) {
+      setSegfaultError("ERROR: Form is unavailable. Please reload and try again.");
+      return;
+    }
+
     setIsSubmitting(true);
 
-    // Simulate processing
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const data = new FormData(formRef.current);
+      const formDataObj = Object.fromEntries(data.entries()) as Record<string, string>;
+
+      await fetch(scriptUrl, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formDataObj),
+      });
+
       setSubmitted(true);
-    }, 1500);
+    } catch (error) {
+      setSegfaultError("ERROR: Failed to submit registration. Please try again.");
+      console.error("Submission error:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (name: string, value: string) => {

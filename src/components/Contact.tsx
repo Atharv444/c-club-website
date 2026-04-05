@@ -70,10 +70,10 @@ export default function Contact() {
                     &gt; EMAIL_CHANNEL
                   </span>
                   <a
-                    href="mailto:contact@cclub.dev"
+                    href="mailto:teamc@dsatm.edu.in"
                     className="text-terminal-green hover:text-white transition-colors text-sm glitch-hover"
                   >
-                    contact@cclub.dev
+                    teamc@dsatm.edu.in
                   </a>
                 </div>
 
@@ -105,6 +105,9 @@ export default function Contact() {
                     &gt; COORDINATES
                   </span>
                   <div className="text-[#00ff41]/70 font-mono text-sm leading-relaxed flex flex-col flex-1">
+                  <span>Orchu Venkata K</span>
+                  <span>Dr. C Nandini</span>
+                  <span>Dr. M Ravishankar</span>
                     <span>DSATM CS Department</span>
                     <div className="w-full text-left text-terminal-dim mt-auto pt-2 block backdrop-blur-sm relative">
                       LAT: {lat.toFixed(4)} | LON: {lon.toFixed(4)}

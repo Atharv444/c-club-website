@@ -322,3 +322,102 @@ a, button, input, select, textarea, .cursor-pointer, [role="button"] {
   animation: cursor-blink-block 1s infinite steps(1);
   padding: 0 4px;
 }
+
+/* ========== VHS GLITCH PAGE TRANSITION ========== */
+.vhs-glitch-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0) 0px,
+      rgba(0, 0, 0, 0) 1px,
+      rgba(255, 255, 255, 0.03) 1px,
+      rgba(255, 255, 255, 0.03) 2px
+    ),
+    /* Noise pattern via gradient */
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 0, 255, 0.02) 0px,
+      transparent 2px,
+      rgba(0, 243, 255, 0.02) 4px,
+      transparent 6px
+    );
+  mix-blend-mode: screen;
+  animation: vhs-static 0.08s steps(4) infinite;
+}
+
+@keyframes vhs-static {
+  0%   { background-position: 0 0, 0 0; }
+  25%  { background-position: -2px 1px, 3px -1px; }
+  50%  { background-position: 1px -2px, -1px 2px; }
+  75%  { background-position: -1px 3px, 2px -2px; }
+  100% { background-position: 2px -1px, -3px 1px; }
+}
+
+/* Horizontal tear lines — simulate VHS tracking errors */
+.vhs-tear {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 0 8px rgba(0, 243, 255, 0.4),
+    0 0 20px rgba(255, 0, 255, 0.2);
+  animation: vhs-tear-move 0.15s steps(3) infinite;
+}
+
+.vhs-tear-1 { top: 15%; animation-delay: 0s; }
+.vhs-tear-2 { top: 55%; animation-delay: 0.03s; height: 3px; }
+.vhs-tear-3 { top: 82%; animation-delay: 0.06s; }
+
+@keyframes vhs-tear-move {
+  0%   { transform: translateX(0) scaleX(1); opacity: 0.8; }
+  33%  { transform: translateX(8px) scaleX(1.02); opacity: 1; }
+  66%  { transform: translateX(-4px) scaleX(0.98); opacity: 0.6; }
+  100% { transform: translateX(2px) scaleX(1); opacity: 0.9; }
+}
+
+/* RGB chromatic aberration bars */
+.vhs-rgb-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.vhs-rgb-bar-1 {
+  top: 30%;
+  height: 40px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(255, 0, 255, 0.08) 30%,
+    rgba(0, 243, 255, 0.06) 70%,
+    transparent
+  );
+  animation: vhs-rgb-drift 0.1s steps(2) infinite;
+}
+
+.vhs-rgb-bar-2 {
+  top: 65%;
+  height: 25px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(0, 243, 255, 0.1) 40%,
+    rgba(255, 0, 255, 0.05) 80%,
+    transparent
+  );
+  animation: vhs-rgb-drift 0.12s steps(2) infinite reverse;
+}
+
+@keyframes vhs-rgb-drift {
+  0%   { transform: translateX(0); }
+  50%  { transform: translateX(6px); }
+  100% { transform: translateX(-3px); }
+}

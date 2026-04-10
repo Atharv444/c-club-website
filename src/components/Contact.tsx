@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export default function Contact() {
   const [lat, setLat] = useState(12.9716);
@@ -103,12 +104,12 @@ export default function Contact() {
                   <span className="text-terminal-dim text-xs block mb-2">
                     &gt; COORDINATES
                   </span>
-                  <p className="text-synth-cyan/70 font-mono text-sm leading-relaxed flex flex-col flex-1">
+                  <div className="text-synth-cyan/70 font-mono text-sm leading-relaxed flex flex-col flex-1">
                     <span>DSATM CS Department</span>
-                    <span className="text-terminal-dim mt-auto pt-2 block">
+                    <div className="w-full text-left text-terminal-dim mt-auto pt-2 block backdrop-blur-sm relative">
                       LAT: {lat.toFixed(4)} | LON: {lon.toFixed(4)}
-                    </span>
-                  </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 

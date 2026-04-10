@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useBootContext } from "@/context/BootContext";
 
 const BOOT_LINES = [
   { text: "BIOS v3.14 — C://CLUB SYSTEMS", delay: 0 },
@@ -23,26 +24,13 @@ const BOOT_LINES = [
   { text: "╚══════════════════════════════════════════╝", delay: 3400 },
 ];
 
-export default function BootSequence({
-  onComplete,
-}: {
-  onComplete: () => void;
-}) {
+export default function BootSequence() {
+  const { booted, completeBoot } = useBootContext();
   const [visibleLines, setVisibleLines] = useState<number>(0);
   const [isExiting, setIsExiting] = useState(false);
-  const [skipBoot, setSkipBoot] = useState(false);
 
   useEffect(() => {
-    // Check sessionStorage to skip if already booted
-    if (typeof window !== "undefined" && sessionStorage.getItem("booted")) {
-      setSkipBoot(true);
-      onComplete();
-      return;
-    }
-  }, [onComplete]);
-
-  useEffect(() => {
-    if (skipBoot) return;
+    if (booted) return;
 
     const timeouts: NodeJS.Timeout[] = [];
 
@@ -56,29 +44,23 @@ export default function BootSequence({
     // After all lines shown, wait a moment then exit
     const exitTimeout = setTimeout(() => {
       setIsExiting(true);
-      if (typeof window !== "undefined") {
-        sessionStorage.setItem("booted", "true");
-      }
       setTimeout(() => {
-        onComplete();
+        completeBoot();
       }, 800);
     }, BOOT_LINES[BOOT_LINES.length - 1].delay + 1000);
     timeouts.push(exitTimeout);
 
     return () => timeouts.forEach(clearTimeout);
-  }, [onComplete, skipBoot]);
+  }, [booted, completeBoot]);
 
   const handleSkip = useCallback(() => {
     setIsExiting(true);
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("booted", "true");
-    }
     setTimeout(() => {
-      onComplete();
+      completeBoot();
     }, 300);
-  }, [onComplete]);
+  }, [completeBoot]);
 
-  if (skipBoot) return null;
+  if (booted) return null;
 
   return (
     <AnimatePresence>
@@ -118,7 +100,7 @@ export default function BootSequence({
                       : line.text.includes("[OK]")
                       ? "text-terminal-green"
                       : line.text.includes("$")
-                      ? "text-terminal-amber"
+                      ? "text-synth-magenta"
                       : line.text.startsWith("╔") ||
                         line.text.startsWith("║") ||
                         line.text.startsWith("╚")
@@ -161,7 +143,7 @@ export default function BootSequence({
                   }}
                   transition={{ duration: 0.3 }}
                   style={{
-                    boxShadow: "0 0 10px rgba(0, 255, 65, 0.5)",
+                    boxShadow: "0 0 10px rgba(0, 243, 255, 0.5)",
                   }}
                 />
               </div>

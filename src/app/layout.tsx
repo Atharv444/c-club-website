@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { TerminalShell } from "./terminal-shell";
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
@@ -22,7 +23,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${jetbrainsMono.variable} antialiased`} suppressHydrationWarning>
-      <body className="min-h-screen font-mono" suppressHydrationWarning>{children}</body>
+      <body className="min-h-screen font-mono" suppressHydrationWarning>
+        <TerminalShell>{children}</TerminalShell>
+      </body>
     </html>
   );
 }

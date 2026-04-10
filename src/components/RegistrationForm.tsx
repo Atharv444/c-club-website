@@ -87,10 +87,10 @@ export default function RegistrationForm() {
   return (
     <section id="register" className="relative z-10 px-4 md:px-8 py-12 max-w-4xl mx-auto">
       <motion.div
-        className="relative overflow-hidden rounded border border-green-500/30 bg-[#000000]"
+        className="relative overflow-hidden rounded border border-synth-cyan/30 bg-[#000000]"
         style={{
           boxShadow:
-            "0 0 15px rgba(0, 255, 65, 0.07), 0 0 30px rgba(0, 255, 65, 0.04), inset 0 0 60px rgba(0, 0, 0, 0.8)",
+            "0 0 15px rgba(0, 243, 255, 0.07), 0 0 30px rgba(0, 243, 255, 0.04), inset 0 0 60px rgba(0, 0, 0, 0.8)",
         }}
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -102,21 +102,21 @@ export default function RegistrationForm() {
           className="pointer-events-none absolute inset-0 z-20"
           style={{
             background:
-              "repeating-linear-gradient(0deg, transparent 0px, transparent 1px, rgba(0,255,65,0.03) 1px, rgba(0,255,65,0.03) 2px)",
+              "repeating-linear-gradient(0deg, transparent 0px, transparent 1px, rgba(0,243,255,0.03) 1px, rgba(0,243,255,0.03) 2px)",
           }}
         />
         <div className="pointer-events-none absolute inset-0 z-20 animate-flicker" />
 
         <div className="relative z-10 p-6 md:p-8">
           <motion.h2
-            className="text-terminal-green text-sm md:text-base font-bold mb-2"
+            className="text-sm md:text-base font-bold mb-2"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
           >
-            <span className="text-terminal-dim">root@c-club:~$</span>{" "}
-            <span className="text-terminal-green text-glow">./register --interactive</span>
-            <span className="animate-blink ml-1 text-terminal-green">█</span>
+            <span className="text-synth-magenta text-glow-magenta">root@c-club:~$</span>{" "}
+            <span className="text-synth-magenta text-glow-magenta">./register --interactive</span>
+            <span className="animate-blink ml-1 text-synth-magenta">█</span>
           </motion.h2>
           <p className="text-terminal-dim text-sm mb-6">
             // Fill in the required fields to register
@@ -173,11 +173,11 @@ export default function RegistrationForm() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="relative cursor-pointer glitch-hover bg-terminal-green/10 border border-terminal-green/40 text-terminal-green px-6 py-3 text-sm font-semibold rounded hover:bg-terminal-green/20 hover:border-terminal-green transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="relative cursor-pointer glitch-hover bg-synth-magenta/10 border border-synth-magenta/40 text-synth-magenta px-6 py-3 text-sm font-semibold rounded hover:bg-synth-magenta/20 hover:border-synth-magenta transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
                     <span className="flex items-center gap-2">
-                      <span className="inline-block w-3 h-3 border border-terminal-green border-t-transparent rounded-full animate-spin" />
+                      <span className="inline-block w-3 h-3 border border-synth-magenta border-t-transparent rounded-full animate-spin" />
                       PROCESSING...
                     </span>
                   ) : (

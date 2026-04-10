@@ -33,10 +33,10 @@ export default function BinaryRain() {
     function draw() {
       if (!ctx || !canvas) return;
 
-      ctx.fillStyle = "rgba(10, 10, 10, 0.05)";
+      ctx.fillStyle = "rgba(5, 5, 5, 0.05)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.fillStyle = "#00ff41";
+      ctx.fillStyle = "#00f3ff";
       ctx.font = `${fontSize}px 'JetBrains Mono', monospace`;
       ctx.globalAlpha = 0.3;
 
@@ -48,13 +48,13 @@ export default function BinaryRain() {
         // Vary brightness
         const brightness = Math.random();
         if (brightness > 0.95) {
-          ctx.fillStyle = "#00ff41";
+          ctx.fillStyle = "#00f3ff";
           ctx.globalAlpha = 0.8;
         } else if (brightness > 0.8) {
-          ctx.fillStyle = "#008f11";
+          ctx.fillStyle = "#00888f";
           ctx.globalAlpha = 0.5;
         } else {
-          ctx.fillStyle = "#004400";
+          ctx.fillStyle = "#003333";
           ctx.globalAlpha = 0.25;
         }
 

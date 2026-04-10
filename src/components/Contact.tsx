@@ -34,7 +34,7 @@ export default function Contact() {
               className="absolute inset-0 pointer-events-none opacity-10"
               style={{
                 background:
-                  "repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(0,255,65,0.03) 2px, rgba(0,255,65,0.03) 4px)",
+                  "repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(0,243,255,0.03) 2px, rgba(0,243,255,0.03) 4px)",
               }}
             />
 
@@ -51,9 +51,9 @@ export default function Contact() {
                 className="text-white text-xl md:text-2xl font-bold mb-6 inline-block p-3 rounded terminal-border bg-terminal-green/5"
                 animate={{
                   boxShadow: [
-                    "0 0 5px rgba(0, 255, 65, 0.1)",
-                    "0 0 25px rgba(0, 255, 65, 0.4)",
-                    "0 0 5px rgba(0, 255, 65, 0.1)"
+                    "0 0 5px rgba(0, 243, 255, 0.1)",
+                    "0 0 25px rgba(0, 243, 255, 0.4)",
+                    "0 0 5px rgba(0, 243, 255, 0.1)"
                   ]
                 }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -103,7 +103,7 @@ export default function Contact() {
                   <span className="text-terminal-dim text-xs block mb-2">
                     &gt; COORDINATES
                   </span>
-                  <p className="text-[#00ff41]/70 font-mono text-sm leading-relaxed flex flex-col flex-1">
+                  <p className="text-synth-cyan/70 font-mono text-sm leading-relaxed flex flex-col flex-1">
                     <span>DSATM CS Department</span>
                     <span className="text-terminal-dim mt-auto pt-2 block">
                       LAT: {lat.toFixed(4)} | LON: {lon.toFixed(4)}

@@ -60,9 +60,8 @@ export default function Members() {
             <motion.div
               key={name}
               variants={memberVariants}
-              className={`terminal-border rounded-lg p-4 bg-terminal-bg/80 backdrop-blur-sm group relative overflow-hidden ${
-                isLast ? "md:col-span-2 md:max-w-[calc(50%-6px)] md:mx-auto" : ""
-              }`}
+              className={`terminal-border rounded-lg p-4 bg-terminal-bg/80 backdrop-blur-sm group relative overflow-hidden ${isLast ? "md:col-span-2 md:max-w-[calc(50%-6px)] md:mx-auto" : ""
+                }`}
               whileHover={{ scale: 1.01 }}
             >
               {/* Default view */}

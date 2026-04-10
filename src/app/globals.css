@@ -1,12 +1,14 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-terminal-green: #00ff41;
-  --color-terminal-dim: #008f11;
-  --color-terminal-bg: #0a0a0a;
-  --color-terminal-dark: #050505;
-  --color-terminal-border: #1a3a1a;
-  --color-terminal-glow: rgba(0, 255, 65, 0.15);
+  --color-synth-cyan: #00f3ff;
+  --color-synth-magenta: #ff00ff;
+  --color-terminal-green: #00f3ff; /* Redirecting green to cyan for legacy classes */
+  --color-terminal-dim: #00888f; /* Dimmer cyan */
+  --color-terminal-bg: #050505; /* Deep Obsidian */
+  --color-terminal-dark: #020202;
+  --color-terminal-border: #003333; /* Dark cyan border */
+  --color-terminal-glow: rgba(0, 243, 255, 0.15);
   --color-terminal-amber: #ffb000;
   --color-terminal-red: #ff0040;
   --color-terminal-cyan: #00f0ff;
@@ -63,8 +65,8 @@
   }
 
   @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 65, 0.3), 0 0 10px rgba(0, 255, 65, 0.1); }
-    50% { box-shadow: 0 0 15px rgba(0, 255, 65, 0.5), 0 0 30px rgba(0, 255, 65, 0.2); }
+    0%, 100% { box-shadow: 0 0 5px rgba(0, 243, 255, 0.3), 0 0 10px rgba(0, 243, 255, 0.1); }
+    50% { box-shadow: 0 0 15px rgba(0, 243, 255, 0.5), 0 0 30px rgba(0, 243, 255, 0.2); }
   }
 
   @keyframes typing {
@@ -83,7 +85,7 @@ html {
 }
 
 body {
-  background: #0a0a0a;
+  background: #050505;
   color: #e0e0e0;
   font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
   position: relative;
@@ -104,8 +106,8 @@ body::after {
     0deg,
     rgba(0, 0, 0, 0) 0px,
     rgba(0, 0, 0, 0) 1px,
-    rgba(0, 0, 0, 0.08) 1px,
-    rgba(0, 0, 0, 0.08) 2px
+    rgba(0, 243, 255, 0.12) 1px,
+    rgba(0, 243, 255, 0.12) 2px
   );
   animation: scanline 8s linear infinite;
 }
@@ -130,24 +132,24 @@ body::before {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: #050505;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #008f11;
+  background: #00888f;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #00ff41;
+  background: #00f3ff;
 }
 
 /* ========== GLITCH HOVER EFFECT ========== */
 .glitch-hover:hover {
   animation: glitch 0.3s ease;
   text-shadow:
-    2px 0 #ff0040,
-    -2px 0 #00f0ff;
+    2px 0 #ff00ff,
+    -2px 0 #00f3ff;
 }
 
 .glitch-hover:active {
@@ -156,8 +158,12 @@ body::before {
 }
 
 /* ========== TEXT GLOW ========== */
-.text-glow {
-  text-shadow: 0 0 10px rgba(0, 255, 65, 0.7), 0 0 20px rgba(0, 255, 65, 0.4), 0 0 40px rgba(0, 255, 65, 0.2);
+.text-glow, .text-glow-cyan {
+  text-shadow: 0 0 5px rgba(0, 243, 255, 0.7), 0 0 10px rgba(0, 243, 255, 0.4), 0 0 20px rgba(0, 243, 255, 0.2);
+}
+
+.text-glow-magenta {
+  text-shadow: 0 0 5px rgba(255, 0, 255, 0.7), 0 0 10px rgba(255, 0, 255, 0.4), 0 0 20px rgba(255, 0, 255, 0.2);
 }
 
 .text-glow-amber {
@@ -166,43 +172,43 @@ body::before {
 
 /* ========== TERMINAL BORDER ========== */
 .terminal-border {
-  border: 1px solid #1a3a1a;
-  box-shadow: 0 0 10px rgba(0, 255, 65, 0.1), inset 0 0 30px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--color-terminal-border);
+  box-shadow: 0 0 10px rgba(0, 243, 255, 0.1), inset 0 0 30px rgba(0, 0, 0, 0.5);
 }
 
 .terminal-border:hover {
-  border-color: #008f11;
-  box-shadow: 0 0 20px rgba(0, 255, 65, 0.2), inset 0 0 30px rgba(0, 0, 0, 0.5);
+  border-color: var(--color-synth-cyan);
+  box-shadow: 0 0 20px rgba(0, 243, 255, 0.2), inset 0 0 30px rgba(0, 0, 0, 0.5);
 }
 
 /* ========== SELECTION ========== */
 ::selection {
-  background: #00ff41;
-  color: #0a0a0a;
+  background: #00f3ff;
+  color: #050505;
 }
 
 /* ========== TERMINAL INPUT ========== */
 input, textarea {
-  caret-color: #00ff41;
+  caret-color: #ff00ff;
 }
 
 input:focus, textarea:focus {
   outline: none;
-  border-color: #00ff41 !important;
-  box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+  border-color: #ff00ff !important;
+  box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
 }
 
 /* ========== CRT TEXT GLOW ENFORCEMENT ========== */
 .crt-text-glow * {
   font-family: var(--font-mono), monospace !important;
-  text-shadow: 0 0 4px rgba(0, 255, 65, 0.5), 0 0 8px rgba(0, 255, 65, 0.2) !important;
+  text-shadow: 0 0 4px rgba(0, 243, 255, 0.5), 0 0 8px rgba(0, 243, 255, 0.2) !important;
 }
 
 /* ========== CUSTOM CURSOR ========== */
 body {
-  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16'><text x='0' y='14' fill='%2300ff41' font-family='monospace' font-size='16'>*</text></svg>") 8 8, auto;
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16'><text x='0' y='14' fill='%2300f3ff' font-family='monospace' font-size='16'>*</text></svg>") 8 8, auto;
 }
 
 a, button, input, select, textarea, .cursor-pointer, [role="button"] {
-  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16'><text x='0' y='14' fill='%2300ff41' font-family='monospace' font-size='16'>&amp;</text></svg>") 8 8, pointer !important;
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16'><text x='0' y='14' fill='%23ff00ff' font-family='monospace' font-size='16'>&amp;</text></svg>") 8 8, pointer !important;
 }

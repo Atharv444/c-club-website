@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
 
 // Standard IEEE 802.3 CRC32 implementation
 const CRC32_TABLE = (() => {
@@ -25,75 +24,139 @@ function computeCRC32(str: string): string {
   return "0x" + result.toString(16).toUpperCase().padStart(8, "0");
 }
 
+interface TeamFormData {
+  team_name: string;
+  team_size: number;
+  member_names: string[];
+  phone_number: string;
+}
+
+interface ServerRegistrationResult {
+  registrationId: string;
+  teamName: string;
+  teamSize: number;
+  memberCount: number;
+  segmentAddress: string;
+  createdAt: string;
+  message: string;
+}
+
 export default function RegistrationForm() {
-  const [formData, setFormData] = useState({
-    candidate_name: "",
-    user_email: "",
-    academic_year: "2nd Year / 2026",
-    primary_dialect: "C23 / C++20",
-    experience_level: "Intermediate (pointers, memory alloc)",
-    github_handle: "",
+  const [formData, setFormData] = useState<TeamFormData>({
+    team_name: "",
+    team_size: 2,
+    member_names: ["", ""],
+    phone_number: "",
   });
 
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [serverResult, setServerResult] = useState<ServerRegistrationResult | null>(null);
 
-  // Quick select presets
-  const YEAR_PRESETS = [
-    { label: "1st_YR", val: "1st Year / 2027" },
-    { label: "2nd_YR", val: "2nd Year / 2026" },
-    { label: "3rd_YR", val: "3rd Year / 2025" },
-    { label: "4th_YR", val: "4th Year / 2024" },
-    { label: "ALUMNI", val: "Alumni / Industry" },
-  ];
+  const handleTeamSizeChange = (valStr: string) => {
+    if (valStr === "") {
+      setFormData((prev) => ({
+        ...prev,
+        team_size: 0,
+        member_names: [],
+      }));
+      return;
+    }
+    const parsed = parseInt(valStr, 10);
+    if (isNaN(parsed)) return;
+    const clamped = Math.max(1, Math.min(6, parsed));
+    setFormData((prev) => {
+      const current = [...prev.member_names];
+      if (current.length < clamped) {
+        while (current.length < clamped) {
+          current.push("");
+        }
+      } else if (current.length > clamped) {
+        current.splice(clamped);
+      }
+      return {
+        ...prev,
+        team_size: clamped,
+        member_names: current,
+      };
+    });
+  };
 
-  const DIALECT_PRESETS = [
-    { label: "C89", val: "ANSI C89 / C90" },
-    { label: "C99", val: "ISO C99" },
-    { label: "C11", val: "ISO C11" },
-    { label: "C23/CPP20", val: "C23 / C++20" },
-    { label: "C++23", val: "ISO C++23" },
-  ];
+  const handleMemberNameChange = (index: number, val: string) => {
+    setFormData((prev) => {
+      const updated = [...prev.member_names];
+      updated[index] = val;
+      return { ...prev, member_names: updated };
+    });
+  };
 
-  const EXP_PRESETS = [
-    { label: "NOVICE", val: "Novice (syntax, control flow)" },
-    { label: "INTERMEDIATE", val: "Intermediate (pointers, memory alloc)" },
-    { label: "ADVANCED", val: "Advanced (systems, SIMD, lockless)" },
-    { label: "SYSTEMS_HACKER", val: "Systems Hacker (kernel, ASM, IR)" },
-  ];
+  const isPhoneValid = (phone: string) => {
+    const digits = phone.replace(/\D/g, "");
+    return digits.length >= 7 && digits.length <= 15 && /^\+?[0-9\s\-()]+$/.test(phone.trim());
+  };
 
   // Validation
   const isValid = useMemo(() => {
     return (
-      formData.candidate_name.trim().length >= 2 &&
-      formData.user_email.includes("@") &&
-      formData.user_email.includes(".") &&
-      formData.academic_year.trim().length > 0 &&
-      formData.primary_dialect.trim().length > 0 &&
-      formData.experience_level.trim().length > 0
+      formData.team_name.trim().length >= 2 &&
+      formData.team_size >= 1 &&
+      formData.team_size <= 6 &&
+      formData.member_names.length === formData.team_size &&
+      formData.member_names.every((name) => name.trim().length >= 2) &&
+      isPhoneValid(formData.phone_number)
     );
   }, [formData]);
 
   const payloadChecksum = useMemo(() => {
     if (!isValid) return null;
-    const serialized = JSON.stringify(formData);
+    const serialized = JSON.stringify({
+      team_name: formData.team_name.trim(),
+      team_size: formData.team_size,
+      member_names: formData.member_names.map((n) => n.trim()),
+      phone_number: formData.phone_number.trim(),
+    });
     return computeCRC32(serialized);
   }, [formData, isValid]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isValid) {
-      setErrorMsg("gcc: error: candidate credentials buffer incomplete (NULL pointers detected)");
+      setErrorMsg("gcc: error: team credentials buffer incomplete (NULL pointers or invalid format detected)");
       return;
     }
     setErrorMsg(null);
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+
+    try {
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          team_name: formData.team_name,
+          team_size: formData.team_size,
+          member_names: formData.member_names,
+          phone_number: formData.phone_number,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setErrorMsg(data.error || "gcc: fatal error: persistent storage allocation failed (SIGSEGV)");
+        return;
+      }
+
+      setServerResult(data);
       setSubmitted(true);
-    }, 1000);
+    } catch {
+      setErrorMsg("gcc: fatal error: network transmission failure (unable to establish socket to /api/register)");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -118,23 +181,23 @@ export default function RegistrationForm() {
               <span className="text-[#ff9f1c]">root@c-club:~#</span> ./register --interactive
             </div>
             <div className="text-xs text-[#8a7a5c] mt-0.5">
-              // Fill in the required fields to allocate candidate credentials onto system memory.
+              {"// Fill in the required fields to allocate team credentials onto system memory."}
             </div>
           </div>
 
           {!submitted ? (
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Field 1: candidate_name */}
+              {/* Field 1: team_name */}
               <div className="space-y-1">
                 <div className="flex justify-between text-xs">
                   <label className="text-[#e8dcc8] font-semibold">
-                    &gt; char* candidate_name *
+                    &gt; char* team_name *
                   </label>
                   <span className="text-[#8a7a5c] text-[11px]">MEM[0x0001]</span>
                 </div>
                 <div
                   className={`flex items-center px-3 py-2 rounded bg-[#12100a] border transition-colors ${
-                    focusedField === "candidate_name"
+                    focusedField === "team_name"
                       ? "border-[#e8dcc8] shadow-[0_0_10px_rgba(232,220,200,0.2)]"
                       : "border-[#e8dcc8]/20"
                   }`}
@@ -143,254 +206,155 @@ export default function RegistrationForm() {
                   <input
                     type="text"
                     required
-                    value={formData.candidate_name}
+                    value={formData.team_name}
                     onChange={(e) =>
-                      setFormData({ ...formData, candidate_name: e.target.value })
+                      setFormData({ ...formData, team_name: e.target.value })
                     }
-                    onFocus={() => setFocusedField("candidate_name")}
+                    onFocus={() => setFocusedField("team_name")}
                     onBlur={() => setFocusedField(null)}
-                    placeholder="Bjarne Stroustrup"
+                    placeholder="Null Pointers"
                     className="w-full bg-transparent text-xs text-[#e8dcc8] focus:outline-none placeholder-[#8a7a5c]/50 font-mono"
                   />
-                  {focusedField === "candidate_name" && (
+                  {focusedField === "team_name" && (
                     <span className="cursor-blink text-[#ff9f1c] text-xs ml-1">█</span>
                   )}
                   <span className="text-xs text-[#8a7a5c] ml-2">]</span>
                 </div>
               </div>
 
-              {/* Field 2: user_email */}
+              {/* Field 2: team_size */}
               <div className="space-y-1">
                 <div className="flex justify-between text-xs">
                   <label className="text-[#e8dcc8] font-semibold">
-                    &gt; char* user_email *
+                    &gt; uint8_t team_size (1-6) *
                   </label>
                   <span className="text-[#8a7a5c] text-[11px]">MEM[0x0002]</span>
                 </div>
                 <div
                   className={`flex items-center px-3 py-2 rounded bg-[#12100a] border transition-colors ${
-                    focusedField === "user_email"
+                    focusedField === "team_size"
                       ? "border-[#e8dcc8] shadow-[0_0_10px_rgba(232,220,200,0.2)]"
                       : "border-[#e8dcc8]/20"
                   }`}
                 >
                   <span className="text-xs text-[#8a7a5c] mr-2">[ $</span>
                   <input
-                    type="email"
+                    type="number"
+                    min={1}
+                    max={6}
                     required
-                    value={formData.user_email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, user_email: e.target.value })
-                    }
-                    onFocus={() => setFocusedField("user_email")}
-                    onBlur={() => setFocusedField(null)}
-                    placeholder="developer@cclub.dev"
+                    value={formData.team_size || ""}
+                    onChange={(e) => handleTeamSizeChange(e.target.value)}
+                    onFocus={() => setFocusedField("team_size")}
+                    onBlur={() => {
+                      setFocusedField(null);
+                      if (!formData.team_size || formData.team_size < 1) {
+                        handleTeamSizeChange("1");
+                      } else if (formData.team_size > 6) {
+                        handleTeamSizeChange("6");
+                      }
+                    }}
+                    placeholder="2"
                     className="w-full bg-transparent text-xs text-[#e8dcc8] focus:outline-none placeholder-[#8a7a5c]/50 font-mono"
                   />
-                  {focusedField === "user_email" && (
+                  {focusedField === "team_size" && (
                     <span className="cursor-blink text-[#ff9f1c] text-xs ml-1">█</span>
                   )}
                   <span className="text-xs text-[#8a7a5c] ml-2">]</span>
                 </div>
               </div>
 
-              {/* Field 3: academic_year */}
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <label className="text-[#e8dcc8] font-semibold">
-                    &gt; uint16_t academic_year *
-                  </label>
-                  <span className="text-[#8a7a5c] text-[11px]">MEM[0x0003]</span>
+              {/* Field 3: dynamic member_names */}
+              <div className="space-y-3 pt-1">
+                <div className="flex justify-between items-center text-xs text-[#8a7a5c] border-b border-[#e8dcc8]/15 pb-1">
+                  <span>{`// DYNAMIC ALLOCATION: member_names[] (${formData.member_names.length} active slots)`}</span>
+                  <span className="text-[10px]">MEM[0x0003]</span>
                 </div>
-                <div
-                  className={`flex items-center px-3 py-2 rounded bg-[#12100a] border transition-colors ${
-                    focusedField === "academic_year"
-                      ? "border-[#e8dcc8] shadow-[0_0_10px_rgba(232,220,200,0.2)]"
-                      : "border-[#e8dcc8]/20"
-                  }`}
-                >
-                  <span className="text-xs text-[#8a7a5c] mr-2">[ $</span>
-                  <input
-                    type="text"
-                    required
-                    value={formData.academic_year}
-                    onChange={(e) =>
-                      setFormData({ ...formData, academic_year: e.target.value })
-                    }
-                    onFocus={() => setFocusedField("academic_year")}
-                    onBlur={() => setFocusedField(null)}
-                    placeholder="2nd Year / 2026"
-                    className="w-full bg-transparent text-xs text-[#e8dcc8] focus:outline-none placeholder-[#8a7a5c]/50 font-mono"
-                  />
-                  {focusedField === "academic_year" && (
-                    <span className="cursor-blink text-[#ff9f1c] text-xs ml-1">█</span>
-                  )}
-                  <span className="text-xs text-[#8a7a5c] ml-2">]</span>
-                </div>
-                {/* Year Presets */}
-                <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] text-[#8a7a5c]">
-                  <span className="opacity-75">// PRESETS:</span>
-                  {YEAR_PRESETS.map((p) => (
-                    <button
-                      key={p.label}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, academic_year: p.val })}
-                      className={`px-1.5 py-0.5 rounded cursor-pointer transition-colors ${
-                        formData.academic_year === p.val
-                          ? "bg-[#ff9f1c]/20 text-[#ff9f1c] border border-[#ff9f1c]/40"
-                          : "hover:text-[#e8dcc8] border border-transparent"
-                      }`}
-                    >
-                      [{p.label}]
-                    </button>
-                  ))}
-                </div>
+
+                {formData.member_names.map((name, idx) => {
+                  const memTag = `MEM[0x0003${String.fromCharCode(97 + idx)}]`;
+                  const fieldKey = `member_names_${idx}`;
+                  return (
+                    <div key={idx} className="space-y-1 pl-2 border-l border-[#e8dcc8]/20">
+                      <div className="flex justify-between text-xs">
+                        <label className="text-[#e8dcc8] font-semibold">
+                          &gt; char* member_names[{idx}] *
+                        </label>
+                        <span className="text-[#8a7a5c] text-[11px]">{memTag}</span>
+                      </div>
+                      <div
+                        className={`flex items-center px-3 py-2 rounded bg-[#12100a] border transition-colors ${
+                          focusedField === fieldKey
+                            ? "border-[#e8dcc8] shadow-[0_0_10px_rgba(232,220,200,0.2)]"
+                            : "border-[#e8dcc8]/20"
+                        }`}
+                      >
+                        <span className="text-xs text-[#8a7a5c] mr-2">[ $</span>
+                        <input
+                          type="text"
+                          required
+                          value={name}
+                          onChange={(e) => handleMemberNameChange(idx, e.target.value)}
+                          onFocus={() => setFocusedField(fieldKey)}
+                          onBlur={() => setFocusedField(null)}
+                          placeholder={idx === 0 ? "Team Lead Name" : `Member ${idx + 1} Name`}
+                          className="w-full bg-transparent text-xs text-[#e8dcc8] focus:outline-none placeholder-[#8a7a5c]/50 font-mono"
+                        />
+                        {focusedField === fieldKey && (
+                          <span className="cursor-blink text-[#ff9f1c] text-xs ml-1">█</span>
+                        )}
+                        <span className="text-xs text-[#8a7a5c] ml-2">]</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
-              {/* Field 4: primary_dialect */}
+              {/* Field 4: phone_number */}
               <div className="space-y-1">
                 <div className="flex justify-between text-xs">
                   <label className="text-[#e8dcc8] font-semibold">
-                    &gt; enum std_dialect primary_dialect *
+                    &gt; char* phone_number *
                   </label>
                   <span className="text-[#8a7a5c] text-[11px]">MEM[0x0004]</span>
                 </div>
                 <div
                   className={`flex items-center px-3 py-2 rounded bg-[#12100a] border transition-colors ${
-                    focusedField === "primary_dialect"
+                    focusedField === "phone_number"
                       ? "border-[#e8dcc8] shadow-[0_0_10px_rgba(232,220,200,0.2)]"
                       : "border-[#e8dcc8]/20"
                   }`}
                 >
                   <span className="text-xs text-[#8a7a5c] mr-2">[ $</span>
                   <input
-                    type="text"
+                    type="tel"
                     required
-                    value={formData.primary_dialect}
+                    value={formData.phone_number}
                     onChange={(e) =>
-                      setFormData({ ...formData, primary_dialect: e.target.value })
+                      setFormData({ ...formData, phone_number: e.target.value })
                     }
-                    onFocus={() => setFocusedField("primary_dialect")}
+                    onFocus={() => setFocusedField("phone_number")}
                     onBlur={() => setFocusedField(null)}
-                    placeholder="C23 / C++20"
+                    placeholder="+91 9876543210"
                     className="w-full bg-transparent text-xs text-[#e8dcc8] focus:outline-none placeholder-[#8a7a5c]/50 font-mono"
                   />
-                  {focusedField === "primary_dialect" && (
-                    <span className="cursor-blink text-[#ff9f1c] text-xs ml-1">█</span>
-                  )}
-                  <span className="text-xs text-[#8a7a5c] ml-2">]</span>
-                </div>
-                {/* Dialect Presets */}
-                <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] text-[#8a7a5c]">
-                  <span className="opacity-75">// STANDARDS:</span>
-                  {DIALECT_PRESETS.map((p) => (
-                    <button
-                      key={p.label}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, primary_dialect: p.val })}
-                      className={`px-1.5 py-0.5 rounded cursor-pointer transition-colors ${
-                        formData.primary_dialect === p.val
-                          ? "bg-[#ff9f1c]/20 text-[#ff9f1c] border border-[#ff9f1c]/40"
-                          : "hover:text-[#e8dcc8] border border-transparent"
-                      }`}
-                    >
-                      [{p.label}]
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Field 5: experience_level */}
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <label className="text-[#e8dcc8] font-semibold">
-                    &gt; int experience_level *
-                  </label>
-                  <span className="text-[#8a7a5c] text-[11px]">MEM[0x0005]</span>
-                </div>
-                <div
-                  className={`flex items-center px-3 py-2 rounded bg-[#12100a] border transition-colors ${
-                    focusedField === "experience_level"
-                      ? "border-[#e8dcc8] shadow-[0_0_10px_rgba(232,220,200,0.2)]"
-                      : "border-[#e8dcc8]/20"
-                  }`}
-                >
-                  <span className="text-xs text-[#8a7a5c] mr-2">[ $</span>
-                  <input
-                    type="text"
-                    required
-                    value={formData.experience_level}
-                    onChange={(e) =>
-                      setFormData({ ...formData, experience_level: e.target.value })
-                    }
-                    onFocus={() => setFocusedField("experience_level")}
-                    onBlur={() => setFocusedField(null)}
-                    placeholder="Intermediate (pointers, memory alloc)"
-                    className="w-full bg-transparent text-xs text-[#e8dcc8] focus:outline-none placeholder-[#8a7a5c]/50 font-mono"
-                  />
-                  {focusedField === "experience_level" && (
-                    <span className="cursor-blink text-[#ff9f1c] text-xs ml-1">█</span>
-                  )}
-                  <span className="text-xs text-[#8a7a5c] ml-2">]</span>
-                </div>
-                {/* Exp Presets */}
-                <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] text-[#8a7a5c]">
-                  <span className="opacity-75">// LEVELS:</span>
-                  {EXP_PRESETS.map((p) => (
-                    <button
-                      key={p.label}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, experience_level: p.val })}
-                      className={`px-1.5 py-0.5 rounded cursor-pointer transition-colors ${
-                        formData.experience_level === p.val
-                          ? "bg-[#ff9f1c]/20 text-[#ff9f1c] border border-[#ff9f1c]/40"
-                          : "hover:text-[#e8dcc8] border border-transparent"
-                      }`}
-                    >
-                      [{p.label}]
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Field 6: github_handle */}
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <label className="text-[#e8dcc8] font-semibold">
-                    &gt; void* github_handle (optional)
-                  </label>
-                  <span className="text-[#8a7a5c] text-[11px]">MEM[0x0006]</span>
-                </div>
-                <div
-                  className={`flex items-center px-3 py-2 rounded bg-[#12100a] border transition-colors ${
-                    focusedField === "github_handle"
-                      ? "border-[#e8dcc8] shadow-[0_0_10px_rgba(232,220,200,0.2)]"
-                      : "border-[#e8dcc8]/20"
-                  }`}
-                >
-                  <span className="text-xs text-[#8a7a5c] mr-2">[ $</span>
-                  <input
-                    type="text"
-                    value={formData.github_handle}
-                    onChange={(e) =>
-                      setFormData({ ...formData, github_handle: e.target.value })
-                    }
-                    onFocus={() => setFocusedField("github_handle")}
-                    onBlur={() => setFocusedField(null)}
-                    placeholder="@bstroustrup"
-                    className="w-full bg-transparent text-xs text-[#e8dcc8] focus:outline-none placeholder-[#8a7a5c]/50 font-mono"
-                  />
-                  {focusedField === "github_handle" && (
+                  {focusedField === "phone_number" && (
                     <span className="cursor-blink text-[#ff9f1c] text-xs ml-1">█</span>
                   )}
                   <span className="text-xs text-[#8a7a5c] ml-2">]</span>
                 </div>
               </div>
 
-              {/* Error Line if any */}
+              {/* Compiler-styled Error Line if any */}
               {errorMsg && (
-                <div className="text-xs text-[#e5484d] font-bold">
-                  {errorMsg}
+                <div className="p-3 rounded border border-[#e5484d]/50 bg-[#12100a] text-xs font-mono space-y-1">
+                  <div className="text-[#e5484d] font-bold flex items-center gap-1.5">
+                    <span>✖</span>
+                    <span>COMPILER_ERROR:</span>
+                  </div>
+                  <div className="text-[#e8dcc8] pl-4">
+                    {errorMsg}
+                  </div>
                 </div>
               )}
 
@@ -401,7 +365,7 @@ export default function RegistrationForm() {
                   disabled={isSubmitting}
                   className="px-6 py-2.5 rounded bg-[#ff9f1c] text-[#12100a] font-bold text-xs sm:text-sm tracking-wider hover:bg-[#ffb347] shadow-[0_0_18px_rgba(255,159,28,0.4)] transition-all cursor-pointer disabled:opacity-50"
                 >
-                  {isSubmitting ? "ALLOCATING_BUFFER..." : "$ SUBMIT_REGISTRATION"}
+                  {isSubmitting ? "COMMITTING_TO_SQLITE..." : "$ SUBMIT_REGISTRATION"}
                 </button>
 
                 {/* Real CRC32 Integrity Check Badge */}
@@ -421,40 +385,116 @@ export default function RegistrationForm() {
               </div>
             </form>
           ) : (
-            /* Success confirmation */
-            <div className="p-6 rounded border border-[#e8dcc8]/30 bg-[#12100a] text-center space-y-4">
-              <div className="text-2xl text-[#ff9f1c] font-bold">[✓] RECORD_COMMITTED</div>
-              <p className="text-xs sm:text-sm text-[#8a7a5c] max-w-md mx-auto leading-relaxed">
-                Candidate pointer allocated at segment address 0x7FFF0001. A confirmation ticket has been mapped to process table.
-              </p>
-              <button
-                onClick={() => setSubmitted(false)}
-                className="text-xs text-[#ff9f1c] hover:underline cursor-pointer"
-              >
-                [ALLOCATE ANOTHER CANDIDATE &gt;&gt;]
-              </button>
+            /* Success confirmation showing real server-side persistence results */
+            <div className="p-6 rounded border border-[#e8dcc8]/30 bg-[#12100a] space-y-4">
+              <div className="text-center space-y-2">
+                <div className="text-2xl text-[#ff9f1c] font-bold">[✓] RECORD_COMMITTED_TO_PERSISTENT_STORE</div>
+                <p className="text-xs sm:text-sm text-[#8a7a5c] max-w-lg mx-auto leading-relaxed">
+                  Team record successfully committed to persistent Supabase (Postgres) storage. Segment address{" "}
+                  <span className="text-[#e8dcc8] font-bold">{serverResult?.segmentAddress || "0x7FFF0001"}</span>{" "}
+                  mapped to system process table.
+                </p>
+              </div>
+
+              {serverResult && (
+                <div className="max-w-md mx-auto p-3.5 rounded border border-[#e8dcc8]/20 bg-[#12100a]/90 text-xs space-y-2">
+                  <div className="flex justify-between items-center border-b border-[#e8dcc8]/15 pb-1 text-[11px] text-[#8a7a5c]">
+                    <span className="text-[#e8dcc8] font-bold">{"// PERSISTED_RECORD_META"}</span>
+                    <span>ENGINE: Supabase (Postgres)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#8a7a5c]">RECORD_ID:</span>
+                    <span className="text-[#ff9f1c] font-bold font-mono text-[11px]">{serverResult.registrationId}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#8a7a5c]">TEAM_NAME:</span>
+                    <span className="text-[#e8dcc8] font-bold">{serverResult.teamName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#8a7a5c]">TEAM_SIZE:</span>
+                    <span className="text-[#e8dcc8]">{serverResult.teamSize} members</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#8a7a5c]">SEGMENT_ADDR:</span>
+                    <span className="text-[#e8dcc8] font-mono">{serverResult.segmentAddress}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#8a7a5c]">COMMITTED_AT:</span>
+                    <span className="text-[#8a7a5c]">{new Date(serverResult.createdAt).toLocaleString()}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="text-center pt-2">
+                <button
+                  onClick={() => {
+                    setSubmitted(false);
+                    setServerResult(null);
+                    setErrorMsg(null);
+                    setFormData({
+                      team_name: "",
+                      team_size: 2,
+                      member_names: ["", ""],
+                      phone_number: "",
+                    });
+                  }}
+                  className="text-xs text-[#ff9f1c] hover:underline cursor-pointer"
+                >
+                  [ALLOCATE ANOTHER TEAM &gt;&gt;]
+                </button>
+              </div>
             </div>
           )}
 
-          {/* Live STDOUT // HEAP ALLOCATION MONITOR log panel */}
+          {/* Dynamic STDOUT // HEAP ALLOCATION MONITOR log panel */}
           <div className="p-3.5 rounded border border-[#e8dcc8]/20 bg-[#12100a] text-xs font-mono space-y-1 text-[#8a7a5c]">
             <div className="flex justify-between items-center text-[11px] mb-2 border-b border-[#e8dcc8]/15 pb-1">
               <span className="text-[#e8dcc8] flex items-center gap-1.5 font-bold">
-                <span className="w-2 h-2 rounded-full bg-[#e8dcc8]" />
+                <span className={`w-2 h-2 rounded-full ${serverResult ? "bg-[#ff9f1c] animate-pulse" : "bg-[#e8dcc8]"}`} />
                 <span>STDOUT // HEAP ALLOCATION MONITOR</span>
               </span>
-              <span>PAGESIZE: 4096</span>
+              <span>PAGESIZE: 4096 | ENGINE: Supabase (Postgres)</span>
             </div>
-            <div>
-              0x00: <span className="text-[#e8dcc8]">[READY]</span> Awaiting candidate registration buffer commit...
-            </div>
-            <div>
-              0x08: <span className="text-[#ff9f1c]">[MEM]</span> Address range allocated: 0x7FFF0001 -&gt; 0x7FFF0006 [ACTIVE]
-            </div>
-            {payloadChecksum && (
-              <div className="text-[#e8dcc8]">
-                0x10: [PASS] Checksum verified: {payloadChecksum} [ZERO CORRUPTION]
-              </div>
+
+            {!serverResult ? (
+              <>
+                <div>
+                  0x00: <span className="text-[#e8dcc8]">[READY]</span> Awaiting team registration buffer commit...
+                </div>
+                <div>
+                  0x08: <span className="text-[#ff9f1c]">[MEM]</span> Address range allocated: 0x7FFF0001 -&gt; 0x7FFF0004 [ACTIVE]
+                </div>
+                {payloadChecksum && (
+                  <div className="text-[#e8dcc8]">
+                    0x10: [CRC32] Pre-flight checksum: {payloadChecksum} [ZERO CORRUPTION]
+                  </div>
+                )}
+                {isSubmitting && (
+                  <div className="text-[#ff9f1c]">
+                    0x18: [FLUSH] Transmitting payload stream to Supabase persistent storage...
+                  </div>
+                )}
+                {errorMsg && (
+                  <div className="text-[#e5484d]">
+                    0x18: [ABORT] Allocation rejected: {errorMsg}
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <div>
+                  0x00: <span className="text-[#e8dcc8]">[COMMITTED]</span> Supabase table &apos;registrations&apos; row inserted successfully.
+                </div>
+                <div>
+                  0x08: <span className="text-[#ff9f1c]">[RECORD]</span> UUID: {serverResult.registrationId} | Segment: {serverResult.segmentAddress} [PERSISTED]
+                </div>
+                <div>
+                  0x10: <span className="text-[#e8dcc8]">[SLOTS]</span> {serverResult.teamSize} member pointers sealed at {serverResult.createdAt}
+                </div>
+                <div className="text-[#8a7a5c]">
+                  0x18: [CLOUD_SYNC] Hosted Postgres storage synchronized [INTEGRITY_OK]
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -462,31 +502,31 @@ export default function RegistrationForm() {
 
       {/* Three Bottom Technical Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        {/* Card 1: Candidate_t */}
+        {/* Card 1: Team_t */}
         <div className="p-4 rounded border border-[#e8dcc8]/20 bg-[#12100a]/85 space-y-2">
           <div className="flex justify-between text-[10px] text-[#8a7a5c]">
             <span>MEM_UTILIZATION</span>
-            <span className="text-[#ff9f1c] font-bold">48 BYTES</span>
+            <span className="text-[#ff9f1c] font-bold">64 BYTES + HEAP</span>
           </div>
-          <h3 className="text-sm font-bold text-[#e8dcc8]">Candidate_t</h3>
+          <h3 className="text-sm font-bold text-[#e8dcc8]">Team_t</h3>
           <p className="text-xs text-[#8a7a5c] leading-relaxed">
-            Aligned struct packing via `#pragma pack(push, 1)` with 64-bit platform pointers.
+            Aligned struct packing via `#pragma pack(push, 1)` with dynamic member pointer array (`char** member_names`).
           </p>
         </div>
 
-        {/* Card 2: Compiler Target */}
+        {/* Card 2: Process Group / IPC */}
         <div className="p-4 rounded border border-[#e8dcc8]/20 bg-[#12100a]/85 space-y-2">
           <div className="flex justify-between text-[10px] text-[#8a7a5c]">
-            <span>COMPILER_TARGET</span>
-            <span className="text-[#ff9f1c] font-bold">x86_64-elf</span>
+            <span>TASK_SCHEDULING</span>
+            <span className="text-[#ff9f1c] font-bold">POSIX Threads</span>
           </div>
-          <h3 className="text-sm font-bold text-[#e8dcc8]">GCC / Clang 18+</h3>
+          <h3 className="text-sm font-bold text-[#e8dcc8]">Process Group / IPC</h3>
           <p className="text-xs text-[#8a7a5c] leading-relaxed">
-            Nightly code reviews with address sanitizer (`-fsanitize=address`) activated.
+            Multi-member task synchronization with address sanitizer (`-fsanitize=address`) verified.
           </p>
         </div>
 
-        {/* Card 3: Privacy & Telemetry Audit (Genuine, no fake security claims) */}
+        {/* Card 3: Privacy & Telemetry Audit */}
         <div className="p-4 rounded border border-[#e8dcc8]/20 bg-[#12100a]/85 space-y-2">
           <div className="flex justify-between text-[10px] text-[#8a7a5c]">
             <span>PRIVACY_AUDIT</span>

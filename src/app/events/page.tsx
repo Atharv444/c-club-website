@@ -1,353 +1,284 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-interface EventData {
+interface EventItem {
   id: string;
-  address: string;
-  title: string;
+  memId: string;
+  statusTag: string;
+  statusSymbol: string;
+  segAddr: string;
   date: string;
-  type: string;
+  typeTag: string;
+  category: "WORKSHOPS" | "CTF_HACKS" | "HARDWARE";
+  title: string;
   description: string;
   details: string;
-  status: string;
 }
 
-const EVENTS: EventData[] = [
+const EVENTS_DATA: EventItem[] = [
   {
-    id: "evt-001",
-    address: "0x0001",
-    title: "Pointer Warfare",
+    id: "evt-1",
+    memId: "MEM[0x0001]",
+    statusSymbol: "[o]",
+    statusTag: "SCHEDULED",
+    segAddr: "SEG: 0x60001000",
     date: "2026-04-15",
-    type: "WORKSHOP",
-    description: "Master pointers, references, and memory management in C/C++.",
+    typeTag: "[WORKSHOP]",
+    category: "WORKSHOPS",
+    title: "Pointer Warfare",
+    description:
+      "Master pointers, references, and memory management in C/C++. Deep dive into pointer arithmetic, double pointers, and cache-friendly layout.",
     details:
-      "Deep dive into pointer arithmetic, dangling pointers, smart pointers, and RAII patterns. Hands-on exercises with valgrind for memory leak detection. Suitable for intermediate programmers looking to level up.",
-    status: "SCHEDULED",
+      "Deep dive into pointer arithmetic, dangling pointers, smart pointers, and RAII patterns. Hands-on exercises with valgrind for memory leak detection. Allocating heap buffers directly on testbed machines.",
   },
   {
-    id: "evt-002",
-    address: "0x0002",
-    title: "Binary CTF Challenge",
+    id: "evt-2",
+    memId: "MEM[0x0002]",
+    statusSymbol: "[*]",
+    statusTag: "OPEN_REGISTRATION",
+    segAddr: "SEG: 0x60002000",
     date: "2026-04-22",
-    type: "COMPETITION",
-    description: "Reverse engineering and binary exploitation capture-the-flag.",
+    typeTag: "[COMPETITION]",
+    category: "CTF_HACKS",
+    title: "Binary CTF Challenge",
+    description:
+      "Reverse engineering and binary exploitation capture-the-flag. Buffer overflows, ROP chains, and ASLR bypasses.",
     details:
-      "A 4-hour CTF competition featuring challenges in reverse engineering, buffer overflows, format string vulnerabilities, and binary patching. Teams of 2-3 members. Prizes for top 3 teams.",
-    status: "OPEN",
+      "A 4-hour CTF competition featuring challenges in reverse engineering, buffer overflows, format string vulnerabilities, and binary patching. Teams of 2-3 members. Live score server.",
   },
   {
-    id: "evt-003",
-    address: "0x0003",
-    title: "OS from Scratch",
+    id: "evt-3",
+    memId: "MEM[0x3A0A]",
+    statusSymbol: "[^]",
+    statusTag: "UPCOMING",
+    segAddr: "SEG: 0x60003A0A",
     date: "2026-05-01",
-    type: "SERIES",
-    description: "Build a minimal operating system kernel in C from the ground up.",
+    typeTag: "[SERIES]",
+    category: "WORKSHOPS",
+    title: "OS from Scratch",
+    description:
+      "Build a minimal operating system kernel in C from the ground up. Bootloader, GDT, paging, and interrupt handling.",
     details:
       "A 6-week workshop series covering bootloaders, protected mode, interrupt handling, memory management, and basic file systems. You'll write every line of code yourself. Bring your laptop with QEMU installed.",
-    status: "UPCOMING",
   },
   {
-    id: "evt-004",
-    address: "0x0004",
-    title: "Algorithm Arena",
+    id: "evt-4",
+    memId: "MEM[0x0004]",
+    statusSymbol: "[o]",
+    statusTag: "SCHEDULED",
+    segAddr: "SEG: 0x60004000",
     date: "2026-05-10",
-    type: "CONTEST",
-    description: "Competitive programming showdown — solve or be segfaulted.",
+    typeTag: "[CONTEST]",
+    category: "CTF_HACKS",
+    title: "Algorithm Arena",
+    description:
+      "Competitive programming showdown — solve or segfault. Ultra-low latency data structures with zero allocations.",
     details:
-      "Individual contest with 6 problems of increasing difficulty. Categories include graph theory, dynamic programming, number theory, and string algorithms. All solutions must be in C or C++. Live leaderboard.",
-    status: "SCHEDULED",
+      "Individual contest with 6 problems of increasing difficulty. Categories include graph theory, dynamic programming, number theory, and string algorithms. All solutions must be in C or C++.",
   },
   {
-    id: "evt-005",
-    address: "0x0005",
-    title: "Embedded Systems Lab",
+    id: "evt-5",
+    memId: "MEM[0x0005]",
+    statusSymbol: "[^]",
+    statusTag: "UPCOMING",
+    segAddr: "SEG: 0x60005000",
     date: "2026-05-20",
-    type: "HANDS-ON",
-    description: "Program microcontrollers with bare-metal C — no libraries allowed.",
+    typeTag: "[HANDS-ON]",
+    category: "HARDWARE",
+    title: "Embedded Systems Lab",
+    description:
+      "Program microcontrollers with bare-metal C — no libraries allowed. Direct register manipulation and UART debugging.",
     details:
       "Get hands-on with ARM Cortex-M4 boards. Write register-level code for GPIO, UART, timers, and interrupts. Understand linker scripts and startup code. Hardware provided.",
-    status: "UPCOMING",
   },
   {
-    id: "evt-006",
-    address: "0x0006",
-    title: "Tech Talk: Rust vs C++",
+    id: "evt-6",
+    memId: "MEM[0x0006]",
+    statusSymbol: "[-]",
+    statusTag: "PLANNING",
+    segAddr: "SEG: 0x60006000",
     date: "2026-06-05",
-    type: "TALK",
-    description: "A heated debate on memory safety, performance, and the future.",
+    typeTag: "[TALK]",
+    category: "WORKSHOPS",
+    title: "Tech Talk: Rust vs C++ Zero-Cost Abstractions",
+    description:
+      "A flame-graph comparison of memory models, borrow checking, and RAII under extreme compiler optimization.",
     details:
-      "Guest speakers from industry discuss the trade-offs between Rust and modern C++. Topics include ownership models, zero-cost abstractions, community ecosystem, and real-world performance benchmarks. Q&A session included.",
-    status: "PLANNING",
+      "Industry speakers discuss trade-offs between Rust and modern C++. Topics include ownership models, zero-cost abstractions, ecosystem libraries, and real-world execution benchmarks. Q&A session included.",
   },
 ];
 
-function ScrambledText({ text, isScrambling }: { text: string; isScrambling: boolean }) {
-  const [displayText, setDisplayText] = useState(text);
-
-  useEffect(() => {
-    if (!isScrambling) {
-      setDisplayText(text);
-      return;
-    }
-
-    const chars = "!@#$%^&*()_+-=[]{}|;:,.<>/?`~0123456789█▓";
-    const duration = 1500;
-    const flickerRate = 60;
-    const maxIterations = duration / flickerRate;
-    let iteration = 0;
-
-    const interval = setInterval(() => {
-      setDisplayText(
-        text
-          .split("")
-          .map((c, index) => {
-            if (c === " ") return " ";
-            const threshold = (iteration / maxIterations) * text.length;
-            if (index < threshold) return c;
-            return chars[Math.floor(Math.random() * chars.length)];
-          })
-          .join("")
-      );
-
-      iteration++;
-
-      if (iteration > maxIterations) {
-        clearInterval(interval);
-        setDisplayText(text);
-      }
-    }, flickerRate);
-
-    return () => clearInterval(interval);
-  }, [text, isScrambling]);
-
-  return <>{displayText}</>;
-}
-
-function StatusIndicator({ status }: { status: string }) {
-  const color =
-    status === "OPEN"
-      ? "text-terminal-green"
-      : status === "SCHEDULED"
-      ? "text-terminal-cyan"
-      : status === "PLANNING"
-      ? "text-terminal-amber"
-      : "text-terminal-dim";
-
-  const dot =
-    status === "OPEN"
-      ? "bg-terminal-green animate-pulse"
-      : status === "SCHEDULED"
-      ? "bg-terminal-cyan"
-      : status === "PLANNING"
-      ? "bg-terminal-amber"
-      : "bg-terminal-dim";
-
-  return (
-    <span className={`flex items-center gap-1.5 ${color} text-xs`}>
-      <span className={`inline-block w-1.5 h-1.5 rounded-full ${dot}`} />
-      {status}
-    </span>
-  );
-}
-
-function EventCard({
-  event,
-  index,
-  isExpanded,
-  onToggle,
-}: {
-  event: EventData;
-  index: number;
-  isExpanded: boolean;
-  onToggle: () => void;
-}) {
-  const [isGlitching, setIsGlitching] = useState(false);
-  const [displayAddress, setDisplayAddress] = useState(event.address);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  const startCycling = () => {
-    let iteration = 0;
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(() => {
-      setDisplayAddress((prev) => {
-        const hexChars = "0123456789ABCDEF";
-        const randomChar = hexChars[Math.floor(Math.random() * 16)];
-        const targetIndex = iteration % 4;
-        const currentHex = prev.slice(2);
-        const newHex =
-          currentHex.substring(0, targetIndex) +
-          randomChar +
-          currentHex.substring(targetIndex + 1);
-        iteration++;
-        return "0x" + newHex;
-      });
-    }, 50);
-  };
-
-  const stopCycling = () => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    setDisplayAddress(event.address);
-  };
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  const handleClick = () => {
-    onToggle();
-    if (!isExpanded) {
-      setIsGlitching(true);
-      setTimeout(() => setIsGlitching(false), 1500);
-    }
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay: index * 0.08 }}
-      className="mb-4"
-    >
-      <div
-        onClick={handleClick}
-        onMouseEnter={startCycling}
-        onMouseLeave={stopCycling}
-        className={`group relative overflow-hidden rounded-md border cursor-pointer transition-all duration-300 ${
-          isExpanded
-            ? "bg-synth-cyan/5 border-synth-magenta shadow-[0_0_15px_rgba(255,0,255,0.3)]"
-            : "bg-black/60 border-synth-cyan/30 hover:border-synth-magenta hover:shadow-[0_0_10px_rgba(255,0,255,0.3)] hover:bg-synth-magenta/[0.02]"
-        }`}
-      >
-        {/* Subtle scanline on the card */}
-        <div
-          className="pointer-events-none absolute inset-0 z-0 opacity-10"
-          style={{
-            background:
-              "repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(0,243,255,0.05) 2px, rgba(0,243,255,0.05) 4px)",
-          }}
-        />
-
-        <div className="relative z-10 px-5 py-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-2">
-            <div className="flex items-center gap-3">
-              <span className="text-terminal-green text-glow text-xs font-bold font-mono px-2 py-0.5 bg-terminal-green/10 border border-terminal-green/20 rounded">
-                MEM[{displayAddress}]
-              </span>
-              <StatusIndicator status={event.status} />
-            </div>
-            
-            <div className="flex items-center gap-3 text-xs font-mono">
-              <span className="text-terminal-dim">{event.date}</span>
-              <span className="text-terminal-border hidden sm:inline">│</span>
-              <span className="text-terminal-amber">{event.type}</span>
-            </div>
-          </div>
-
-          <div className="flex items-start justify-between gap-4 mt-3">
-            <div className="flex-1">
-              <h3 className={`text-lg font-bold font-mono transition-colors mb-1 ${
-                isExpanded ? "text-terminal-green text-glow" : "text-white group-hover:text-terminal-green"
-              }`}>
-                {event.title}
-              </h3>
-              <p className="text-terminal-dim text-sm font-mono leading-relaxed">
-                <ScrambledText text={event.description} isScrambling={isGlitching} />
-              </p>
-            </div>
-            <div className="text-terminal-dim mt-1 shrink-0 font-mono text-sm">
-              {isExpanded ? "[-]" : "[+]"}
-            </div>
-          </div>
-        </div>
-
-        {/* Expanded Detail */}
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="overflow-hidden"
-            >
-              <div className="px-5 pb-5 pt-2 relative z-10">
-                <div className="h-px w-full bg-gradient-to-r from-terminal-green/50 to-transparent mb-4" />
-                
-                <div className="flex items-center gap-2 mb-3 text-xs text-terminal-green/70 font-mono">
-                  <span>&gt;</span>
-                  <span className="animate-pulse">LOADING DETAILS...</span>
-                  <span className="animate-blink">█</span>
-                </div>
-
-                <p className="text-gray-300 text-sm font-mono leading-relaxed pl-3 border-l border-terminal-green/30">
-                  <ScrambledText text={event.details} isScrambling={isGlitching} />
-                </p>
-
-                <div className="mt-4 pt-4 flex justify-between items-center text-xs text-terminal-dim font-mono border-t border-terminal-border/20">
-                  <span>&gt; EOF</span>
-                  <span className="text-terminal-amber">SYS_OK</span>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </motion.div>
-  );
-}
+type FilterType = "ALL_EVENTS" | "WORKSHOPS" | "CTF_HACKS" | "HARDWARE";
 
 export default function EventsPage() {
+  const [filter, setFilter] = useState<FilterType>("ALL_EVENTS");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const toggleEvent = (id: string) => {
+  const filteredEvents = EVENTS_DATA.filter((e) => {
+    if (filter === "ALL_EVENTS") return true;
+    return e.category === filter;
+  });
+
+  const toggleExpand = (id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
   };
 
   return (
-    <section className="relative z-10 px-4 md:px-8 py-12 max-w-4xl mx-auto crt-text-glow font-mono">
-      {/* Header */}
-      <motion.div
-        className="mb-8"
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <h1 className="text-synth-magenta text-glow-magenta text-xl md:text-2xl font-bold mb-2">
-          $ ls -la /var/log/events/*
-        </h1>
-        <p className="text-terminal-dim text-sm">
-          // {EVENTS.length} memory blocks loaded — click to expand data
-        </p>
-      </motion.div>
-
-      {/* Event Cards (Stacked) */}
-      <div className="flex flex-col">
-        {EVENTS.map((event, index) => (
-          <EventCard
-            key={event.id}
-            event={event}
-            index={index}
-            isExpanded={expandedId === event.id}
-            onToggle={() => toggleEvent(event.id)}
-          />
-        ))}
+    <div className="space-y-6 py-6 font-mono select-none max-w-4xl mx-auto">
+      {/* 1. Header Command Line */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#e8dcc8]/15 pb-4">
+        <div>
+          <div className="text-sm md:text-base font-bold text-[#e8dcc8] flex items-center">
+            <span>$ ls -la /var/log/events/*</span>
+          </div>
+          <div className="text-xs text-[#8a7a5c] mt-0.5">
+            // {EVENTS_DATA.length} heap-allocated memory blocks loaded — click block to dereference data
+          </div>
+        </div>
+        <div className="text-[11px] text-[#8a7a5c] self-start sm:self-auto">
+          CHUNK_SIZE: 0x0400 | DUMP: OK
+        </div>
       </div>
 
-      {/* Footer */}
-      <motion.div
-        className="mt-6 text-terminal-dim text-xs"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
-      >
-        <span className="text-terminal-green">&gt;</span> {EVENTS.length} entries found
-        in /var/log/events/ — END OF LISTING
-        <span className="animate-blink ml-1 text-terminal-green">█</span>
-      </motion.div>
-    </section>
+      {/* 2. Filter Chip Row */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+        <div className="flex flex-wrap items-center gap-2">
+          {(["ALL_EVENTS", "WORKSHOPS", "CTF_HACKS", "HARDWARE"] as FilterType[]).map((f) => {
+            const active = filter === f;
+            return (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`text-xs px-3 py-1 rounded transition-all cursor-pointer font-bold tracking-wider ${
+                  active
+                    ? "bg-[#ff9f1c] text-[#12100a] shadow-[0_0_12px_rgba(255,159,28,0.4)]"
+                    : "text-[#e8dcc8] hover:text-[#ff9f1c] bg-[#12100a]/80 border border-[#e8dcc8]/20"
+                }`}
+              >
+                [ {f} ]
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex items-center gap-2 text-[11px] text-[#8a7a5c]">
+          <span className="w-2 h-2 rounded-full bg-[#e8dcc8]" />
+          <span>ALLOC: HEAP_ACTIVE | PTR_DEPTH: 64-BIT</span>
+        </div>
+      </div>
+
+      {/* 3. Event Cards Stack */}
+      <div className="space-y-3 pt-2">
+        {filteredEvents.map((evt, idx) => {
+          const isExpanded = expandedId === evt.id;
+
+          // Status coloring
+          const isRegistered = evt.statusTag === "OPEN_REGISTRATION";
+          const statusColor = isRegistered
+            ? "text-[#e8dcc8] font-bold"
+            : evt.statusTag === "UPCOMING"
+            ? "text-[#ff9f1c]"
+            : "text-[#8a7a5c]";
+
+          return (
+            <motion.div
+              key={evt.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2, delay: idx * 0.04 }}
+              className={`rounded border transition-all duration-200 overflow-hidden ${
+                isExpanded
+                  ? "border-[#e8dcc8]/60 bg-[#12100a] shadow-[0_0_18px_rgba(232,220,200,0.15)]"
+                  : "border-[#e8dcc8]/20 bg-[#12100a]/85 hover:border-[#e8dcc8]/40"
+              }`}
+            >
+              <div
+                onClick={() => toggleExpand(evt.id)}
+                className="p-4 sm:p-5 cursor-pointer"
+              >
+                {/* Meta Top Line */}
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs mb-2">
+                  <div className="flex items-center gap-3">
+                    <span className="text-[#e8dcc8] font-bold text-[11px] px-1.5 py-0.5 rounded bg-[#e8dcc8]/10 border border-[#e8dcc8]/30">
+                      {evt.memId}
+                    </span>
+                    <span className={`text-[11px] ${statusColor}`}>
+                      {evt.statusSymbol} {evt.statusTag}
+                    </span>
+                    <span className="text-[#8a7a5c] text-[11px] hidden sm:inline">
+                      :: {evt.segAddr}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2.5 text-[#8a7a5c] text-[11px]">
+                    <span>{evt.date}</span>
+                    <span>|</span>
+                    <span className="text-[#e8dcc8] font-semibold">{evt.typeTag}</span>
+                  </div>
+                </div>
+
+                {/* Title */}
+                <h3 className="text-base sm:text-lg font-bold text-[#e8dcc8] mb-1.5 group-hover:text-white transition-colors">
+                  {evt.title}
+                </h3>
+
+                {/* Description */}
+                <p className="text-xs sm:text-sm text-[#8a7a5c] leading-relaxed">
+                  {evt.description}
+                </p>
+
+                {/* Bottom Right Link */}
+                <div className="flex justify-end pt-2">
+                  <span className="text-xs font-bold text-[#ff9f1c] hover:underline">
+                    {isExpanded ? "[-] COLLAPSE" : "[+] DEREFERENCE"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Expandable Dereference Heap Buffer */}
+              <AnimatePresence>
+                {isExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="border-t border-[#e8dcc8]/20 bg-[#12100a]/95 px-5 py-4 text-xs space-y-2 text-[#e8dcc8]"
+                  >
+                    <div className="text-[11px] text-[#8a7a5c]">
+                      &gt; DEREFERENCING {evt.segAddr} ... [HEAP_BLOCK_COMMITTED]
+                    </div>
+                    <div className="pl-3 border-l-2 border-[#ff9f1c] text-[#8a7a5c] leading-relaxed">
+                      {evt.details}
+                    </div>
+                    <div className="flex justify-between items-center text-[10px] text-[#8a7a5c] pt-2">
+                      <span>ALLOCATOR: jemalloc::malloc({evt.memId})</span>
+                      <span className="text-[#e8dcc8]">STATUS: SUCCESS [0 LEAKS]</span>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* 4. Footer Status Bar */}
+      <div className="mt-8 pt-4 border-t border-[#e8dcc8]/20 flex flex-col sm:flex-row items-center justify-between gap-2 text-[10px] sm:text-[11px] text-[#8a7a5c]">
+        <div className="flex flex-wrap items-center gap-2">
+          <span>STATUS: MEM_DUMP_VALID</span>
+          <span>|</span>
+          <span>ALLOCATOR: jemalloc</span>
+          <span>|</span>
+          <span>FRAG_RATIO: 0.002%</span>
+          <span>|</span>
+          <span>PAGES_MAPPED: 6</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-[#ff9f1c]" />
+          <span>DAEMON: /usr/sbin/sched_d [PID: 4092]</span>
+        </div>
+      </div>
+    </div>
   );
 }

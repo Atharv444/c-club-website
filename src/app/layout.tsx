@@ -11,10 +11,10 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "C://CLUB — C/C++ Programming Club",
+  title: "C//CLUB — C/C++ Systems & Programming Club",
   description:
-    "A retro-futuristic terminal interface for the C/C++ Programming Club. Compile. Link. Execute.",
-  keywords: ["C", "C++", "programming", "club", "coding", "terminal"],
+    "A unified C/C++ terminal interface for the C/C++ Programming Club. Compile. Link. Execute.",
+  keywords: ["C", "C++", "programming", "systems", "club", "coding", "terminal"],
 };
 
 export default function RootLayout({

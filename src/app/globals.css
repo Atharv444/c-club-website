@@ -1,78 +1,20 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-synth-cyan: #00f3ff;
-  --color-synth-magenta: #ff00ff;
-  --color-terminal-green: #00f3ff; /* Redirecting green to cyan for legacy classes */
-  --color-terminal-dim: #00888f; /* Dimmer cyan */
-  --color-terminal-bg: #050505; /* Deep Obsidian */
-  --color-terminal-dark: #020202;
-  --color-terminal-border: #003333; /* Dark cyan border */
-  --color-terminal-glow: rgba(0, 243, 255, 0.15);
-  --color-terminal-amber: #ffb000;
-  --color-terminal-red: #ff0040;
-  --color-terminal-cyan: #00f0ff;
+  --color-blueprint-bg: #12100a;
+  --color-warm-cream: #e8dcc8;
+  --color-amber-accent: #ff9f1c;
+  --color-warm-gray: #8a7a5c;
+  --color-error: #e5484d;
 
-  --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
+  --font-mono: 'JetBrains Mono', monospace;
 
-  --animate-scanline: scanline 8s linear infinite;
-  --animate-flicker: flicker 0.15s infinite;
   --animate-blink: blink 1s step-end infinite;
-  --animate-glitch: glitch 0.3s ease;
-  --animate-data-load: data-load 0.5s ease-out;
-  --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
-  --animate-typing: typing 3.5s steps(40, end);
+}
 
-  @keyframes scanline {
-    0% { transform: translateY(-100%); }
-    100% { transform: translateY(100%); }
-  }
-
-  @keyframes flicker {
-    0% { opacity: 0.97; }
-    5% { opacity: 0.95; }
-    10% { opacity: 0.97; }
-    15% { opacity: 0.94; }
-    20% { opacity: 0.98; }
-    50% { opacity: 0.96; }
-    80% { opacity: 0.98; }
-    90% { opacity: 0.95; }
-    100% { opacity: 0.97; }
-  }
-
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
-  }
-
-  @keyframes glitch {
-    0% { transform: translate(0); filter: hue-rotate(0deg); }
-    10% { transform: translate(-2px, 2px); filter: hue-rotate(90deg); }
-    20% { transform: translate(2px, -2px); filter: hue-rotate(180deg); }
-    30% { transform: translate(-1px, -1px); filter: hue-rotate(270deg); }
-    40% { transform: translate(1px, 1px); filter: hue-rotate(360deg); }
-    50% { transform: translate(-2px, 0); }
-    60% { transform: translate(0, 2px); }
-    70% { transform: translate(2px, -1px); }
-    80% { transform: translate(-1px, 2px); }
-    90% { transform: translate(1px, -2px); }
-    100% { transform: translate(0); filter: hue-rotate(0deg); }
-  }
-
-  @keyframes data-load {
-    0% { opacity: 0; transform: translateY(10px); }
-    100% { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 5px rgba(0, 243, 255, 0.3), 0 0 10px rgba(0, 243, 255, 0.1); }
-    50% { box-shadow: 0 0 15px rgba(0, 243, 255, 0.5), 0 0 30px rgba(0, 243, 255, 0.2); }
-  }
-
-  @keyframes typing {
-    from { width: 0; }
-    to { width: 100%; }
-  }
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
 }
 
 /* ========== BASE STYLES ========== */
@@ -82,48 +24,22 @@
 
 html {
   scroll-behavior: smooth;
+  background-color: #12100a;
 }
 
 body {
-  background: #050505;
-  color: #e0e0e0;
-  font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
+  background-color: #12100a;
+  color: #e8dcc8;
+  font-family: 'JetBrains Mono', monospace;
   position: relative;
   overflow-x: hidden;
-}
+  min-height: 100vh;
 
-/* CRT Scanline Overlay */
-body::after {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 200%;
-  pointer-events: none;
-  z-index: 9999;
-  background: repeating-linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0) 0px,
-    rgba(0, 0, 0, 0) 1px,
-    rgba(0, 243, 255, 0.12) 1px,
-    rgba(0, 243, 255, 0.12) 2px
-  );
-  animation: scanline 8s linear infinite;
-}
-
-/* Subtle flicker */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 9998;
-  animation: flicker 0.15s infinite;
-  background: transparent;
+  /* Faint blueprint grid: #8a7a5c lines at 8% opacity, 24px grid */
+  background-image: 
+    linear-gradient(to right, rgba(138, 122, 92, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(138, 122, 92, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 /* ========== CUSTOM SCROLLBAR ========== */
@@ -132,193 +48,45 @@ body::before {
 }
 
 ::-webkit-scrollbar-track {
-  background: #050505;
+  background: #12100a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #00888f;
-  border-radius: 3px;
+  background: #8a7a5c;
+  border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #00f3ff;
-}
-
-/* ========== GLITCH HOVER EFFECT ========== */
-.glitch-hover:hover {
-  animation: glitch 0.3s ease;
-  text-shadow:
-    2px 0 #ff00ff,
-    -2px 0 #00f3ff;
-}
-
-.glitch-hover:active {
-  filter: invert(1);
-  transition: filter 0.05s;
-}
-
-/* ========== TEXT GLOW ========== */
-.text-glow, .text-glow-cyan {
-  text-shadow: 0 0 5px rgba(0, 243, 255, 0.7), 0 0 10px rgba(0, 243, 255, 0.4), 0 0 20px rgba(0, 243, 255, 0.2);
-}
-
-.text-glow-magenta {
-  text-shadow: 0 0 5px rgba(255, 0, 255, 0.7), 0 0 10px rgba(255, 0, 255, 0.4), 0 0 20px rgba(255, 0, 255, 0.2);
-}
-
-.text-glow-amber {
-  text-shadow: 0 0 10px rgba(255, 176, 0, 0.7), 0 0 20px rgba(255, 176, 0, 0.4);
-}
-
-/* ========== TERMINAL BORDER ========== */
-.terminal-border {
-  border: 1px solid var(--color-terminal-border);
-  box-shadow: 0 0 10px rgba(0, 243, 255, 0.1), inset 0 0 30px rgba(0, 0, 0, 0.5);
-}
-
-.terminal-border:hover {
-  border-color: var(--color-synth-cyan);
-  box-shadow: 0 0 20px rgba(0, 243, 255, 0.2), inset 0 0 30px rgba(0, 0, 0, 0.5);
+  background: #e8dcc8;
 }
 
 /* ========== SELECTION ========== */
 ::selection {
-  background: #00f3ff;
-  color: #050505;
+  background: rgba(255, 159, 28, 0.35);
+  color: #ffffff;
 }
 
-/* ========== TERMINAL INPUT ========== */
-input, textarea {
-  caret-color: #ff00ff;
+/* ========== TEXT GLOW UTILITIES ========== */
+.text-glow,
+.text-glow-blue,
+.text-glow-cream {
+  text-shadow: 0 0 8px rgba(232, 220, 200, 0.45), 0 0 16px rgba(232, 220, 200, 0.2);
 }
 
-input:focus, textarea:focus {
-  outline: none;
-  border-color: #ff00ff !important;
-  box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+.text-glow-orange,
+.text-glow-amber {
+  text-shadow: 0 0 8px rgba(255, 159, 28, 0.6), 0 0 18px rgba(255, 159, 28, 0.35);
 }
 
-/* ========== CRT TEXT GLOW ENFORCEMENT ========== */
-.crt-text-glow * {
-  font-family: var(--font-mono), monospace !important;
-  text-shadow: 0 0 4px rgba(0, 243, 255, 0.5), 0 0 8px rgba(0, 243, 255, 0.2) !important;
-}
-
-/* ========== CUSTOM CURSOR ========== */
-body {
-  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16'><text x='0' y='14' fill='%2300f3ff' font-family='monospace' font-size='16'>*</text></svg>") 8 8, auto;
-}
-
-a, button, input, select, textarea, .cursor-pointer, [role="button"] {
-  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16'><text x='0' y='14' fill='%23ff00ff' font-family='monospace' font-size='16'>&amp;</text></svg>") 8 8, pointer !important;
-}
-
-/* ========== TACTICAL HUD GLITCH SYSTEM ========== */
-.phosphor-text {
-  text-shadow: 0 0 5px #00FF41, 0 0 10px rgba(0, 255, 65, 0.4) !important;
-}
-.phosphor-border {
-  box-shadow: 0 0 5px #00FF41, inset 0 0 5px rgba(0, 255, 65, 0.2) !important;
-  border: 1px solid #00FF41 !important;
-}
-
-/* Base structural element requires relative positioning for pseudo-element slicing */
-.glitch-chromatic {
-  position: relative;
+/* ========== CURSOR 1s STEP BLINK (WARM AMBER #ff9f1c) ========== */
+.cursor-blink {
   display: inline-block;
+  color: #ff9f1c;
+  animation: blink 1s step-end infinite;
 }
 
-/* Chaotic translation keyframes for chromatic aberration */
-@keyframes shift-cyan {
-  0% { transform: translate(1px, -1px); clip-path: inset(10% 0 80% 0); }
-  20% { transform: translate(-2px, 1px); clip-path: inset(50% 0 20% 0); }
-  40% { transform: translate(1px, 2px); clip-path: inset(10% 0 60% 0); }
-  60% { transform: translate(-1px, -2px); clip-path: inset(80% 0 5% 0); }
-  80% { transform: translate(2px, -1px); clip-path: inset(30% 0 40% 0); }
-  100% { transform: translate(0px, 0px); clip-path: inset(0% 0 0% 0); }
-}
-
-@keyframes shift-magenta {
-  0% { transform: translate(-2px, 1px); clip-path: inset(20% 0 50% 0); }
-  20% { transform: translate(1px, -2px); clip-path: inset(70% 0 10% 0); }
-  40% { transform: translate(-2px, -1px); clip-path: inset(40% 0 30% 0); }
-  60% { transform: translate(2px, 2px); clip-path: inset(10% 0 80% 0); }
-  80% { transform: translate(-1px, 1px); clip-path: inset(60% 0 10% 0); }
-  100% { transform: translate(0px, 0px); clip-path: inset(0% 0 0% 0); }
-}
-
-/* Duplicates generated exactly spanning the parent bounds, colored via mix-blend-mode */
-.glitch-chromatic::before,
-.glitch-chromatic::after {
-  content: attr(data-text); /* Pull the text from a data attribute */
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  pointer-events: none;
-  background: transparent;
-  mix-blend-mode: exclusion;
-  z-index: 2;
-  /* Very quick baseline shifts, intensified during initialization/hover */
-  animation: shift-cyan 4s steps(2, end) infinite; 
-}
-.glitch-chromatic::before {
-  color: #00FFFF;
-  text-shadow: -1px 0 #00FFFF;
-}
-.glitch-chromatic::after {
-  color: #FF00FF;
-  animation-name: shift-magenta;
-  animation-duration: 3s;
-  text-shadow: 1px 0 #FF00FF;
-}
-
-/* Border Glitch specifically targeting container wrappers */
-.glitch-border {
-  position: relative;
-}
-.glitch-border::before,
-.glitch-border::after {
-  content: '';
-  position: absolute;
-  top: -1px; left: -1px; right: -1px; bottom: -1px;
-  border: 1px solid transparent; /* Replaces the solid border during duplication */
-  pointer-events: none;
-  z-index: -1;
-  mix-blend-mode: exclusion;
-  animation: shift-cyan 2s steps(2, end) infinite;
-}
-.glitch-border::before {
-  border-color: #00FFFF;
-}
-.glitch-border::after {
-  border-color: #FF00FF;
-  animation-name: shift-magenta;
-  animation-duration: 1.5s;
-}
-
-/* Modifiers for Hover and Intense state (Startup Glitch) */
-.intense-glitch.glitch-chromatic::before,
-.intense-glitch.glitch-chromatic::after,
-.glitch-hover:hover .glitch-chromatic::before,
-.glitch-hover:hover .glitch-chromatic::after {
-  animation-duration: 0.1s;
-  animation-timing-function: linear;
-}
-
-.intense-glitch.glitch-border::before,
-.intense-glitch.glitch-border::after,
-.glitch-hover:hover.glitch-border::before,
-.glitch-hover:hover.glitch-border::after {
-  animation-duration: 0.1s;
-  animation-timing-function: linear;
-}
-
-/* The solid block blinking cursor */
-@keyframes cursor-blink-block {
-  0%, 49% { border-color: transparent; background-color: transparent; color: inherit; }
-  50%, 100% { border-color: #00FF41; background-color: #00FF41; color: #000; }
-}
-.cursor-block {
-  display: inline-block;
-  animation: cursor-blink-block 1s infinite steps(1);
-  padding: 0 4px;
+/* ========== SQUIGGLY UNDERLINE FOR COMPILER WARNINGS ========== */
+.wavy-underline {
+  text-decoration: underline wavy #e5484d 1.5px;
+  text-underline-offset: 3px;
 }

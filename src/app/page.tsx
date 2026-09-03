@@ -30,11 +30,12 @@ export default function Home() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, delay: 0.1 }}
-          className="flex items-center justify-center"
+          className="flex items-center justify-center gap-3"
         >
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight text-[#ff9f1c] text-glow-amber flex items-center justify-center">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight text-[#ff9f1c] text-glow-amber flex items-center">
             <span>C//CLUB</span>
           </h1>
+          <div className="w-8 h-10 sm:w-10 sm:h-12 md:w-12 md:h-14 bg-[#ff9f1c] rounded-sm shadow-[0_0_20px_rgba(255,159,28,0.6)]" />
         </motion.div>
 
         {/* Tagline */}
